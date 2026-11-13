@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planta do Shopping · Capim Gestão</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="app">
+<aside class="side">
+ <div class="brand">Capim <b>Gestão</b></div>
+ <nav aria-label="Principal">
+  <span title="Em breve">Painel Geral</span>
+  <a class="on" href="planta.html" aria-current="page">Planta do Shopping</a>
+  <span title="Em breve">Infraestrutura</span>
+  <span title="Em breve">Ocorrências</span>
+  <span title="Em breve">Equipes e Atividades</span>
+  <span title="Em breve">Relatórios</span>
+ </nav>
+ <button class="ghost" id="sair" type="button">Sair</button>
+</aside>
+<main>
+ <header class="top"><div><h1>Planta do Shopping</h1><p id="sub"></p></div><span class="mut" id="usr"></span></header>
+ <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+ <div class="bar" id="chips" role="group" aria-label="Filtrar por tipo de área"></div>
+ <section class="grid">
+  <div class="card">
+   <svg id="mapa" viewBox="0 0 1000 580" role="group" aria-label="Planta esquemática do 2º pavimento"></svg>
+   <ul class="legend">
+    <li><i style="background:var(--loja)"></i>Loja ocupada</li><li><i style="background:var(--vaga);border-style:dashed"></i>Vaga</li>
+    <li><i style="background:var(--tec)"></i>Técnico</li><li><i style="background:var(--apoio)"></i>Apoio / comum</li>
+    <li><i style="background:var(--esp)"></i>Espaço especial</li>
+    <li><i style="background:var(--alta);border-radius:50%"></i>Ocorrência alta</li><li><i style="background:var(--media);border-radius:50%"></i>média</li><li><i style="background:var(--baixa);border-radius:50%"></i>baixa</li>
+   </ul>
+  </div>
+  <aside class="card" id="painel" aria-live="polite"></aside>
+ </section>
+ <p class="note">Áreas e rótulos conforme a Planta MIX (folha 2/2, nov/2026); posições são esquemáticas. Ocorrências exibidas são dados fictícios de demonstração, guardados só neste navegador até a API ficar pronta.</p>
+</main>
+<script src="../assets/js/planta-data.js"></script>
+<script src="../assets/js/planta.js"></script>
+</body>
+</html>

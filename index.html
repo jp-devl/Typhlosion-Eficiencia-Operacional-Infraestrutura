@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login · Capim Gestão</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="login">
+<form id="login" novalidate>
+ <img src="assets/typhlosion.jpg" alt="Mascote da equipe Typhlosion">
+ <h1>Capim Gestão</h1>
+ <p class="mut">Eficiência operacional e infraestrutura<br>Capim Dourado Shopping</p>
+ <label>E-mail<input type="email" name="email" autocomplete="username" required></label>
+ <label>Senha<input type="password" name="senha" autocomplete="current-password" minlength="4" required></label>
+ <div class="err" id="err" role="alert"></div>
+ <button type="submit">Entrar</button>
+</form>
+<script src="assets/js/auth.js"></script>
+</body>
+</html>
