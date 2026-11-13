@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="assets/typhlosion.jpg" alt="Mascote da Equipe Typhlosion" width="220">
+</p>
+
+
+
 # 🏢 Capim Gestão — Eficiência Operacional e Infraestrutura
 
 Aplicação web desenvolvida pela equipe **Typhlosion** durante o **HackaRun 2026** com o objetivo de centralizar a gestão de infraestrutura, o registro de ocorrências e a organização das atividades operacionais do **Capim Dourado Shopping**.
