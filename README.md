@@ -2,7 +2,8 @@
   <img src="assets/typhlosion.jpg" alt="Mascote da Equipe Typhlosion" width="220">
 </p>
 
-
+Vídeo de 5 minutos:
+https://drive.google.com/file/d/1Jumn21lPITeSRb-RYH4_lrnW2nNtXuhj/view?usp=sharing
 
 # 🏢 Capim Gestão — Eficiência Operacional e Infraestrutura
 
