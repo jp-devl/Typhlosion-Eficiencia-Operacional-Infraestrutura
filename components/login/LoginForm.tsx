@@ -16,6 +16,7 @@ const perfis = [
 export default function LoginForm() {
   const router = useRouter();
 
+  const [email, setEmail] = useState("");
   const [perfil, setPerfil] = useState(perfis[0]);
   const [menuAberto, setMenuAberto] = useState(false);
   const [manterConectado, setManterConectado] = useState(true);
@@ -23,6 +24,13 @@ export default function LoginForm() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    localStorage.setItem(
+      "capim_gestao_usuario",
+      JSON.stringify({
+        email: email.trim(),
+        perfil: perfil,
+      })
+    );
     router.push("/painel");
   }
 
@@ -79,8 +87,11 @@ export default function LoginForm() {
               type="email"
               placeholder="E-mail"
               aria-label="E-mail"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               required
             />
+
           </div>
 
           {/* Campo de senha */}

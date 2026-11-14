@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capim Gestão | Relatórios e Histórico Operacional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    :root {
+      --brand-gold: #c29b38;
+      --brand-gold-light: #f7f3eb;
+      --brand-gold-hover: #a88229;
+      --brand-dark: #1f1a14;
+      --brand-darker: #0d0b09;
+      --surface: #ffffff;
+      --bg: #fdfbf7;
+      --text: #2c251e;
+      --muted: #73675c;
+      --border: #e6dfd1;
+
+      --status-pendente-bg: #fef3c7;
+      --status-pendente-txt: #92400e;
+      --status-execucao-bg: #e0f2fe;
+      --status-execucao-txt: #075985;
+      --status-concluida-bg: #dcfce7;
+      --status-concluida-txt: #166534;
+      --status-cancelada-bg: #fee2e2;
+      --status-cancelada-txt: #991b1b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.5; }
+
+    h1, h2, h3, th, .brand-title strong, .kpi-card strong, .page-header h1 {
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 0.3px;
+    }
+
+    header.topbar {
+      background-color: var(--surface);
+      border-bottom: 2px solid var(--brand-gold);
+      padding: 0.75rem 2rem;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      box-shadow: 0 4px 12px rgba(194, 155, 56, 0.08);
+    }
+    header.topbar nav {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+    header.topbar nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: nowrap !important;
+      gap: 0.5rem;
+    }
+    header.topbar nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.4rem 0.65rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    header.topbar nav a:hover {
+      background-color: var(--brand-gold-light);
+      color: var(--brand-gold-hover);
+    }
+    header.topbar nav a[aria-current="page"] {
+      background-color: var(--brand-gold);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+    }
+    .brand-area img {
+      height: 52px;
+      width: auto;
+      object-fit: contain;
+    }
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      padding-left: 1rem;
+    }
+    .brand-title strong {
+      font-size: 1.1rem;
+      color: var(--brand-darker);
+      font-weight: 700;
+    }
+    .brand-title span {
+      font-size: 0.72rem;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 600;
+    }
+
+    .user-profile {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background-color: var(--brand-gold-light);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .user-profile:hover {
+      background-color: #efe8d8;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--brand-gold);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .user-info strong {
+      font-size: 0.85rem;
+      color: var(--brand-darker);
+    }
+    .user-info span {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    main.container { max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .page-header h1 {
+      font-size: 1.6rem;
+      color: var(--brand-darker);
+      font-weight: 700;
+    }
+    .page-header p {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background-color: var(--brand-gold);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 1.4rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(194, 155, 56, 0.3);
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover {
+      background-color: var(--brand-gold-hover);
+    }
+    .btn-primary:active {
+      transform: scale(0.99);
+    }
+
+    .btn-secondary {
+      background-color: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.7rem 1.15rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover {
+      background-color: var(--brand-gold-light);
+      color: var(--brand-darker);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--brand-gold);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 6px rgba(194, 155, 56, 0.05);
+    }
+    .kpi-card span.kpi-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+    .kpi-card strong {
+      font-size: 1.85rem;
+      color: var(--brand-darker);
+      font-weight: 700;
+      display: block;
+    }
+    .kpi-card small {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 16px rgba(194, 155, 56, 0.04);
+      margin-bottom: 1.75rem;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .panel-header h2 {
+      font-size: 1.18rem;
+      color: var(--brand-darker);
+      font-weight: 600;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 1rem;
+      padding-bottom: 1.35rem;
+      margin-bottom: 1.35rem;
+      border-bottom: 1px solid var(--border);
+      align-items: end;
+    }
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .filter-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--brand-darker);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .filter-field input,
+    .filter-field select {
+      padding: 0.58rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: var(--text);
+      background-color: var(--bg);
+      outline: none;
+      width: 100%;
+    }
+    .filter-field input:focus,
+    .filter-field select:focus {
+      border-color: var(--brand-gold);
+      background-color: #ffffff;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.95rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th {
+      background-color: var(--brand-gold-light);
+      font-weight: 600;
+      color: var(--brand-darker);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+    }
+    tbody tr:hover {
+      background-color: #fcf9f2;
+    }
+
+    .badge-equipe {
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background-color: var(--brand-gold-light);
+      color: var(--brand-gold-hover);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .status-Pendente {
+      background-color: var(--status-pendente-bg);
+      color: var(--status-pendente-txt);
+    }
+    .status-EmExecucao {
+      background-color: var(--status-execucao-bg);
+      color: var(--status-execucao-txt);
+    }
+    .status-Concluida {
+      background-color: var(--status-concluida-bg);
+      color: var(--status-concluida-txt);
+    }
+    .status-Cancelada {
+      background-color: var(--status-cancelada-bg);
+      color: var(--status-cancelada-txt);
+    }
+
+    .task-meta {
+      display: block;
+      font-size: 0.79rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+    .sla-ok {
+      color: #166534;
+      font-weight: 600;
+      font-size: 0.76rem;
+      display: block;
+      margin-top: 0.15rem;
+    }
+    .sla-late {
+      color: #b91c1c;
+      font-weight: 600;
+      font-size: 0.76rem;
+      display: block;
+      margin-top: 0.15rem;
+    }
+
+    .print-only-banner {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #000000;
+      }
+      header.topbar nav,
+      .user-profile,
+      .header-actions,
+      .filters-grid,
+      .no-print {
+        display: none !important;
+      }
+      header.topbar {
+        box-shadow: none;
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+      }
+      main.container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .print-only-banner {
+        display: block;
+        background-color: #f7f3eb;
+        border: 1px solid #c29b38;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.82rem;
+      }
+      .panel, .kpi-card {
+        box-shadow: none;
+        border: 1px solid #cccccc;
+        break-inside: avoid;
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      table {
+        font-size: 0.8rem;
+      }
+      th, td {
+        padding: 0.55rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="dashboard.html" class="brand-area" aria-label="Página inicial Capim Gestão">
+      <img src="data:image/png;base64,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" alt="Logo Capim Dourado Shopping">
+      <div class="brand-title">
+        <strong>Capim Gestão</strong>
+        <span>Operações &amp; Infraestrutura</span>
+      </div>
+    </a>
+
+    <nav aria-label="Navegação principal">
+      <ul>
+        <li><a href="dashboard.html">Painel Geral</a></li>
+        <li><a href="planta.html">Planta do Shopping</a></li>
+        <li><a href="infraestrutura.html">Infraestrutura</a></li>
+        <li><a href="ocorrencias.html">Ocorrências</a></li>
+        <li><a href="equipes.html">Equipes e Atividades</a></li>
+        <li><a href="relatorios.html" aria-current="page">Relatórios</a></li>
+      </ul>
+    </nav>
+
+    <div class="user-profile" role="button" tabindex="0" aria-label="Perfil do usuário">
+      <div class="user-avatar">SO</div>
+      <div class="user-info">
+        <strong>Supervisor Operacional</strong>
+        <span>Administração</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="print-only-banner" id="print-banner">
+      <strong>Capim Gestão — Relatório Operacional Consolidado (RF09)</strong><br>
+      <span id="print-meta">Emitido em: -</span>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <h1>Relatórios e Histórico Operacional</h1>
+        <p>Indicadores gerenciais de eficiência, conformidade de SLA e auditoria completa de ordens de serviço.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-secondary" id="btn-limpar-filtros">Limpar Filtros</button>
+        <button type="button" class="btn-primary" id="btn-imprimir" onclick="window.print()">
+          <span>Imprimir / Exportar Relatório</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumo de Eficiência (Critério de Aceite RF09) -->
+    <section class="kpi-grid" aria-label="Resumo de eficiência operacional">
+      <article class="kpi-card">
+        <span class="kpi-label">Taxa de Resolução</span>
+        <strong id="kpi-taxa-resolucao">0%</strong>
+        <small id="kpi-taxa-detalhe">0 de 0 ordens válidas</small>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Tempo Médio de Atendimento</span>
+        <strong id="kpi-tempo-medio">-</strong>
+        <small>Média entre solicitação e conclusão</small>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Total de Ações no Histórico</span>
+        <strong id="kpi-total-registros">0</strong>
+        <small id="kpi-resumo-status">0 concluídas • 0 em andamento</small>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Conformidade de SLA</span>
+        <strong id="kpi-sla">0%</strong>
+        <small>Entregas dentro do prazo estipulado</small>
+      </article>
+    </section>
+
+    <!-- Barra de Filtros e Tabela Histórica Consolidada -->
+    <section class="panel" aria-labelledby="titulo-historico">
+      <div class="panel-header">
+        <h2 id="titulo-historico">Histórico Consolidado de Ações Operacionais</h2>
+        <span class="task-meta" id="contador-exibicao">Exibindo 0 registros</span>
+      </div>
+
+      <div class="filters-grid" role="search" aria-label="Filtros do relatório">
+        <div class="filter-field">
+          <label for="filtro-data-inicio">Período Inicial</label>
+          <input type="date" id="filtro-data-inicio">
+        </div>
+
+        <div class="filter-field">
+          <label for="filtro-data-fim">Período Final</label>
+          <input type="date" id="filtro-data-fim">
+        </div>
+
+        <div class="filter-field">
+          <label for="filtro-setor">Setor / Equipe</label>
+          <select id="filtro-setor">
+            <option value="Todos">Todos os Setores</option>
+            <option value="Manutenção Elétrica">Manutenção Elétrica</option>
+            <option value="Refrigeração">Refrigeração</option>
+            <option value="Limpeza">Limpeza</option>
+            <option value="Predial">Predial</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <label for="filtro-status">Status da Ordem</label>
+          <select id="filtro-status">
+            <option value="Todos">Todos os Status</option>
+            <option value="Concluída">Concluída</option>
+            <option value="Em Execução">Em Execução</option>
+            <option value="Pendente">Pendente</option>
+            <option value="Cancelada">Cancelada</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <label for="filtro-busca">Buscar Protocolo / Ação</label>
+          <input type="search" id="filtro-busca" placeholder="Ex.: OS-001, Chiller, L2...">
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Protocolo / Descrição da Ação</th>
+              <th>Setor / Equipe</th>
+              <th>Solicitação</th>
+              <th>Conclusão / Prazo</th>
+              <th>Tempo de Execução</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-historico">
+            <!-- Preenchido dinamicamente via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'capim_gestao_atividades_v8';
+
+    // Base consolidada sincronizada com equipes.html + histórico operacional anterior
+    const registrosBase = [
+      {
+        id: 'OS-001',
+        titulo: 'Inspeção de pressão e troca de filtro do Chiller 02',
+        equipe: 'Refrigeração',
+        prioridade: 'Alta',
+        prazo: '2026-11-14T14:00',
+        status: 'Em Execução',
+        observacoes: 'Casa de máquinas - Cobertura Sul',
+        dataSolicitacao: '2026-11-10T09:30',
+        dataConclusao: null
+      },
+      {
+        id: 'OS-002',
+        titulo: 'Troca de reatores LED no Corredor Norte (Piso L2)',
+        equipe: 'Manutenção Elétrica',
+        prioridade: 'Média',
+        prazo: '2026-11-14T18:30',
+        status: 'Pendente',
+        observacoes: 'Isolar área durante uso de escada',
+        dataSolicitacao: '2026-11-11T10:15',
+        dataConclusao: null
+      },
+      {
+        id: 'OS-003',
+        titulo: 'Higienização e secagem após reparo hidráulico - Sanitário L1',
+        equipe: 'Limpeza',
+        prioridade: 'Alta',
+        prazo: '2026-11-13T21:00',
+        status: 'Concluída',
+        observacoes: 'Sinalizar piso molhado',
+        dataSolicitacao: '2026-11-12T14:20',
+        dataConclusao: '2026-11-13T18:45'
+      },
+      {
+        id: 'OS-004',
+        titulo: 'Reassentamento de porcelanato próximo à Praça de Alimentação',
+        equipe: 'Predial',
+        prioridade: 'Crítica',
+        prazo: '2026-11-14T08:00',
+        status: 'Pendente',
+        observacoes: 'Executar antes da abertura ao público',
+        dataSolicitacao: '2026-11-13T08:00',
+        dataConclusao: null
+      },
+      {
+        id: 'OS-005',
+        titulo: 'Manutenção preventiva no Quadro Geral de Baixa Tensão (QGBT-01)',
+        equipe: 'Manutenção Elétrica',
+        prioridade: 'Alta',
+        prazo: '2026-11-08T16:00',
+        status: 'Concluída',
+        observacoes: 'Subestação Principal - Termografia concluída sem anomalias',
+        dataSolicitacao: '2026-11-08T08:00',
+        dataConclusao: '2026-11-08T13:30'
+      },
+      {
+        id: 'OS-006',
+        titulo: 'Calibração de sensores de temperatura da Ala Leste',
+        equipe: 'Refrigeração',
+        prioridade: 'Média',
+        prazo: '2026-11-06T17:00',
+        status: 'Concluída',
+        observacoes: 'Fancoils 04 e 05 estabilizados em 22°C',
+        dataSolicitacao: '2026-11-06T09:00',
+        dataConclusao: '2026-11-06T15:20'
+      },
+      {
+        id: 'OS-007',
+        titulo: 'Lavagem técnica mecanizada do Estacionamento Coberto G1',
+        equipe: 'Limpeza',
+        prioridade: 'Baixa',
+        prazo: '2026-11-04T07:00',
+        status: 'Concluída',
+        observacoes: 'Realizado em turno noturno com equipe completa',
+        dataSolicitacao: '2026-11-03T22:00',
+        dataConclusao: '2026-11-04T05:40'
+      },
+      {
+        id: 'OS-008',
+        titulo: 'Revisão de mola hidráulica na Porta Corta-Fogo (Saída B)',
+        equipe: 'Predial',
+        prioridade: 'Alta',
+        prazo: '2026-11-02T12:00',
+        status: 'Concluída',
+        observacoes: 'Substituição de braço articulado e teste de fechamento',
+        dataSolicitacao: '2026-11-02T07:30',
+        dataConclusao: '2026-11-02T12:45'
+      },
+      {
+        id: 'OS-009',
+        titulo: 'Instalação provisória de ponto elétrico para evento sazonal',
+        equipe: 'Manutenção Elétrica',
+        prioridade: 'Baixa',
+        prazo: '2026-11-01T18:00',
+        status: 'Cancelada',
+        observacoes: 'Evento transferido para a Praça Central',
+        dataSolicitacao: '2026-10-30T11:00',
+        dataConclusao: null
+      }
+    ];
+
+    function carregarRegistros() {
+      const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!salvos || !Array.isArray(salvos) || salvos.length === 0) {
+        return registrosBase;
+      }
+      // Mescla os registros salvos pelo usuário em equipes.html com o histórico base
+      const mapa = new Map();
+      registrosBase.forEach(item => mapa.set(item.id, item));
+      salvos.forEach(item => {
+        const existente = mapa.get(item.id);
+        const dataConclusao = item.status === 'Concluída'
+          ? (item.dataConclusao || (existente && existente.dataConclusao) || item.prazo)
+          : null;
+        mapa.set(item.id, {
+          ...existente,
+          ...item,
+          dataConclusao
+        });
+      });
+      return Array.from(mapa.values());
+    }
+
+    const filtroDataInicio = document.getElementById('filtro-data-inicio');
+    const filtroDataFim = document.getElementById('filtro-data-fim');
+    const filtroSetor = document.getElementById('filtro-setor');
+    const filtroStatus = document.getElementById('filtro-status');
+    const filtroBusca = document.getElementById('filtro-busca');
+    const btnLimparFiltros = document.getElementById('btn-limpar-filtros');
+    const tabelaHistorico = document.getElementById('tabela-historico');
+
+    function extrairNumeroOS(id) {
+      const match = String(id).match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+
+    function formatarDataHora(isoString) {
+      if (!isoString) return '-';
+      const data = new Date(isoString);
+      if (isNaN(data.getTime())) return '-';
+      const d = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const h = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `${d} às ${h}`;
+    }
+
+    function formatarDuracao(ms) {
+      if (ms == null || ms < 0) return '-';
+      const totalMin = Math.round(ms / 60000);
+      const horas = Math.floor(totalMin / 60);
+      const minutos = totalMin % 60;
+      if (horas === 0) return `${minutos}min`;
+      return `${horas}h ${String(minutos).padStart(2, '0')}min`;
+    }
+
+    function classeStatus(status) {
+      if (status === 'Em Execução') return 'status-EmExecucao';
+      if (status === 'Concluída') return 'status-Concluida';
+      if (status === 'Cancelada') return 'status-Cancelada';
+      return 'status-Pendente';
+    }
+
+    function atualizarIndicadores(lista) {
+      const validas = lista.filter(r => r.status !== 'Cancelada');
+      const concluidas = lista.filter(r => r.status === 'Concluída');
+      const emAndamento = lista.filter(r => r.status === 'Pendente' || r.status === 'Em Execução');
+
+      // Taxa de Resolução
+      const taxaResolucao = validas.length > 0
+        ? ((concluidas.length / validas.length) * 100).toFixed(1).replace('.', ',')
+        : '0,0';
+
+      document.getElementById('kpi-taxa-resolucao').textContent = `${taxaResolucao}%`;
+      document.getElementById('kpi-taxa-detalhe').textContent = `${concluidas.length} de ${validas.length} ordens válidas concluídas`;
+
+      // Tempo Médio de Atendimento (apenas ordens concluídas com datas válidas)
+      let somaMs = 0;
+      let qtdComTempo = 0;
+      let dentroPrazo = 0;
+
+      concluidas.forEach(item => {
+        const inicio = new Date(item.dataSolicitacao);
+        const fim = new Date(item.dataConclusao || item.prazo);
+        const prazo = new Date(item.prazo);
+
+        if (!isNaN(inicio.getTime()) && !isNaN(fim.getTime()) && fim >= inicio) {
+          somaMs += (fim - inicio);
+          qtdComTempo++;
+        }
+        if (!isNaN(fim.getTime()) && !isNaN(prazo.getTime()) && fim <= prazo) {
+          dentroPrazo++;
+        }
+      });
+
+      const tempoMedioMs = qtdComTempo > 0 ? somaMs / qtdComTempo : null;
+      document.getElementById('kpi-tempo-medio').textContent = formatarDuracao(tempoMedioMs);
+
+      // Total de Ações
+      document.getElementById('kpi-total-registros').textContent = lista.length;
+      document.getElementById('kpi-resumo-status').textContent = `${concluidas.length} concluídas • ${emAndamento.length} em aberto`;
+
+      // Conformidade de SLA
+      const taxaSla = concluidas.length > 0
+        ? ((dentroPrazo / concluidas.length) * 100).toFixed(0)
+        : '0';
+      document.getElementById('kpi-sla').textContent = `${taxaSla}%`;
+
+      // Atualiza cabeçalho de impressão
+      const agoraStr = formatarDataHora(new Date().toISOString());
+      document.getElementById('print-meta').textContent =
+        `Emitido em: ${agoraStr} | Setor: ${filtroSetor.value} | Status: ${filtroStatus.value} | Registros listados: ${lista.length}`;
+    }
+
+    function renderizarRelatorio() {
+      const todosRegistros = carregarRegistros();
+      const dataIniVal = filtroDataInicio.value;
+      const dataFimVal = filtroDataFim.value;
+      const setorVal = filtroSetor.value;
+      const statusVal = filtroStatus.value;
+      const buscaVal = filtroBusca.value.trim().toLowerCase();
+
+      const filtrados = todosRegistros
+        .filter(item => {
+          const dataSol = item.dataSolicitacao ? item.dataSolicitacao.slice(0, 10) : '';
+          if (dataIniVal && dataSol < dataIniVal) return false;
+          if (dataFimVal && dataSol > dataFimVal) return false;
+          if (setorVal !== 'Todos' && item.equipe !== setorVal) return false;
+          if (statusVal !== 'Todos' && item.status !== statusVal) return false;
+          if (buscaVal) {
+            const texto = `${item.id} ${item.titulo} ${item.observacoes || ''}`.toLowerCase();
+            if (!texto.includes(buscaVal)) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => extrairNumeroOS(a.id) - extrairNumeroOS(b.id));
+
+      document.getElementById('contador-exibicao').textContent =
+        `Exibindo ${filtrados.length} ${filtrados.length === 1 ? 'registro' : 'registros'}`;
+
+      tabelaHistorico.innerHTML = '';
+
+      if (filtrados.length === 0) {
+        tabelaHistorico.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align:center; color:#73675c; padding: 2rem;">
+              Nenhum registro histórico encontrado para os filtros aplicados.
+            </td>
+          </tr>
+        `;
+        atualizarIndicadores(filtrados);
+        return;
+      }
+
+      filtrados.forEach(item => {
+        const inicio = new Date(item.dataSolicitacao);
+        const fim = item.status === 'Concluída' ? new Date(item.dataConclusao || item.prazo) : null;
+        const prazo = new Date(item.prazo);
+
+        let colunaConclusao = '';
+        let duracaoTxt = 'Em andamento';
+
+        if (item.status === 'Concluída' && fim) {
+          const noPrazo = fim <= prazo;
+          colunaConclusao = `
+            ${formatarDataHora(item.dataConclusao || item.prazo)}
+            <span class="${noPrazo ? 'sla-ok' : 'sla-late'}">
+              ${noPrazo ? '✓ Concluída no prazo' : '⚠ Concluída após o prazo'}
+            </span>
+          `;
+          duracaoTxt = formatarDuracao(fim - inicio);
+        } else if (item.status === 'Cancelada') {
+          colunaConclusao = `<span class="task-meta">Prazo previsto: ${formatarDataHora(item.prazo)}</span>`;
+          duracaoTxt = 'Cancelada';
+        } else {
+          const vencido = prazo < new Date();
+          colunaConclusao = `
+            Previsto: ${formatarDataHora(item.prazo)}
+            <span class="${vencido ? 'sla-late' : 'task-meta'}">
+              ${vencido ? '⚠ Prazo excedido' : 'Dentro do prazo'}
+            </span>
+          `;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <strong>${item.id}</strong> &mdash; ${item.titulo}
+            ${item.observacoes ? `<span class="task-meta">${item.observacoes}</span>` : ''}
+          </td>
+          <td><span class="badge-equipe">${item.equipe}</span></td>
+          <td style="white-space: nowrap;">${formatarDataHora(item.dataSolicitacao)}</td>
+          <td style="white-space: nowrap;">${colunaConclusao}</td>
+          <td style="white-space: nowrap; font-weight: 600;">${duracaoTxt}</td>
+          <td><span class="status-badge ${classeStatus(item.status)}">${item.status}</span></td>
+        `;
+        tabelaHistorico.appendChild(tr);
+      });
+
+      atualizarIndicadores(filtrados);
+    }
+
+    btnLimparFiltros.addEventListener('click', () => {
+      filtroDataInicio.value = '';
+      filtroDataFim.value = '';
+      filtroSetor.value = 'Todos';
+      filtroStatus.value = 'Todos';
+      filtroBusca.value = '';
+      renderizarRelatorio();
+    });
+
+    filtroDataInicio.addEventListener('change', renderizarRelatorio);
+    filtroDataFim.addEventListener('change', renderizarRelatorio);
+    filtroSetor.addEventListener('change', renderizarRelatorio);
+    filtroStatus.addEventListener('change', renderizarRelatorio);
+    filtroBusca.addEventListener('input', renderizarRelatorio);
+
+    renderizarRelatorio();
+  </script>
+</body>
+</html>
