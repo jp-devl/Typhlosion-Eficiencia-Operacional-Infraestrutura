@@ -1,209 +1,273 @@
 
 import Link from "next/link";
 
+const cores = {
+  dourado: "#b4903d",
+  douradoEscuro: "#8c6a26",
+  marrom: "#78581e",
+  texto: "#292114",
+  textoSecundario: "#6b5e4c",
+  bege: "#f3ead6",
+  fundo: "#f8f5ee",
+  borda: "#e2d9c8",
+  branco: "#ffffff",
+};
+
 const estiloCartao = {
-  background: "#ffffff",
-  border: "1px solid #e5ebe6",
+  background: cores.branco,
+  border: `1px solid ${cores.borda}`,
   borderRadius: "18px",
   padding: "30px",
   textDecoration: "none",
-  color: "#26392e",
-  boxShadow: "0 8px 25px rgba(31, 61, 42, 0.06)",
+  color: cores.texto,
+  boxShadow: "0 8px 25px rgba(68, 49, 15, 0.08)",
+  cursor: "pointer",
+  transition: "transform 0.2s, box-shadow 0.2s",
 };
 
 export default function Painel() {
   return (
-    <main style={{
-      width: "100%",
-      maxWidth: "none",
-      minHeight: "100vh",
-      boxSizing: "border-box",
-      margin: 0,
-      padding: "35px 6%",
-      background: "#f3f6f2",
-      color: "#26392e",
-      fontFamily: "Arial, sans-serif",
-    }}>
+    <main
+      style={{
+        width: "100%",
+        maxWidth: "none",
+        minHeight: "100vh",
+        boxSizing: "border-box",
+        margin: 0,
+        padding: "35px 6%",
+        background: cores.fundo,
+        color: cores.texto,
+        fontFamily: "Segoe UI, Arial, sans-serif",
+      }}
+    >
+      {/* CABEÇALHO */}
 
-      <header style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "20px",
-        paddingBottom: "25px",
-        borderBottom: "1px solid #e0e8e0",
-      }}>
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "20px",
+          paddingBottom: "25px",
+          borderBottom: `1px solid ${cores.borda}`,
+        }}
+      >
         <div>
-          <h1 style={{
-            fontSize: "30px",
-            margin: 0,
-            color: "#234b32",
-          }}>
+          <h1
+            style={{
+              fontSize: "30px",
+              margin: 0,
+              color: cores.marrom,
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+            }}
+          >
             Capim Gestão
           </h1>
 
-          <p style={{
-            margin: "7px 0 0",
-            color: "#77877b",
-            fontSize: "14px",
-          }}>
+          <p
+            style={{
+              margin: "7px 0 0",
+              color: cores.textoSecundario,
+              fontSize: "14px",
+            }}
+          >
             Capim Dourado Shopping · Gestão Operacional
           </p>
         </div>
 
-        <span style={{
-          background: "#e2eee4",
-          color: "#347447",
-          padding: "11px 18px",
-          borderRadius: "30px",
-          fontSize: "13px",
-          fontWeight: "bold",
-        }}>
+        <span
+          style={{
+            background: cores.bege,
+            color: cores.marrom,
+            padding: "11px 18px",
+            borderRadius: "30px",
+            fontSize: "13px",
+            fontWeight: "bold",
+          }}
+        >
           ● Ambiente demonstrativo
         </span>
       </header>
 
-      <section style={{
-        maxWidth: "1250px",
-        margin: "65px auto 0",
-      }}>
-        <p style={{
-          color: "#568064",
-          fontSize: "13px",
-          fontWeight: "bold",
-          letterSpacing: "2px",
-        }}>
+      {/* CONTEÚDO PRINCIPAL */}
+
+      <section
+        style={{
+          maxWidth: "1250px",
+          margin: "65px auto 0",
+        }}
+      >
+        <p
+          style={{
+            color: cores.dourado,
+            fontSize: "13px",
+            fontWeight: "bold",
+            letterSpacing: "2px",
+          }}
+        >
           CENTRAL DE CONTROLE
         </p>
 
-        <h2 style={{
-          fontSize: "clamp(28px, 4vw, 40px)",
-          margin: "12px 0",
-          color: "#234b32",
-        }}>
+        <h2
+          style={{
+            fontSize: "clamp(28px, 4vw, 40px)",
+            margin: "12px 0",
+            color: cores.marrom,
+            fontFamily: "Georgia, serif",
+          }}
+        >
           Bem-vindo ao Capim Gestão
         </h2>
 
-        <p style={{
-          color: "#78877d",
-          fontSize: "16px",
-          lineHeight: 1.7,
-          maxWidth: "650px",
-        }}>
+        <p
+          style={{
+            color: cores.textoSecundario,
+            fontSize: "16px",
+            lineHeight: 1.7,
+            maxWidth: "650px",
+          }}
+        >
           Acesse os módulos de gestão e acompanhe as informações
           operacionais do shopping em um só lugar.
         </p>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "25px",
-          marginTop: "45px",
-        }}>
+        {/* CARTÕES DOS MÓDULOS */}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "25px",
+            marginTop: "45px",
+          }}
+        >
+          {/* PLANTA DO SHOPPING */}
 
           <Link href="/planta" style={estiloCartao}>
-            <div style={{
-              width: "55px",
-              height: "55px",
-              borderRadius: "14px",
-              background: "#e8f2e9",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "28px",
-            }}>
+            <div
+              style={{
+                width: "55px",
+                height: "55px",
+                borderRadius: "14px",
+                background: cores.bege,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "28px",
+                color: cores.marrom,
+              }}
+            >
               ⌖
             </div>
 
-            <h3 style={{
-              fontSize: "22px",
-              margin: "24px 0 10px",
-            }}>
+            <h3
+              style={{
+                fontSize: "22px",
+                margin: "24px 0 10px",
+                color: cores.marrom,
+              }}
+            >
               Planta do Shopping
             </h3>
 
-            <p style={{
-              color: "#77877b",
-              lineHeight: 1.7,
-              fontSize: "14px",
-              minHeight: "48px",
-            }}>
+            <p
+              style={{
+                color: cores.textoSecundario,
+                lineHeight: 1.7,
+                fontSize: "14px",
+                minHeight: "48px",
+              }}
+            >
               Visualize os pavimentos, localize setores e acompanhe
               ocorrências na planta do shopping.
             </p>
 
-            <p style={{
-              color: "#347447",
-              fontWeight: "bold",
-              marginTop: "25px",
-            }}>
+            <p
+              style={{
+                color: cores.douradoEscuro,
+                fontWeight: "bold",
+                marginTop: "25px",
+              }}
+            >
               Acessar módulo →
             </p>
           </Link>
 
-          <div style={{
-            ...estiloCartao,
-            opacity: 0.8,
-          }}>
-            <div style={{
-              width: "55px",
-              height: "55px",
-              borderRadius: "14px",
-              background: "#edf0ed",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "27px",
-            }}>
+          {/* INFRAESTRUTURA */}
+
+          <Link href="/infraestrutura" style={estiloCartao}>
+            <div
+              style={{
+                width: "55px",
+                height: "55px",
+                borderRadius: "14px",
+                background: cores.bege,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "27px",
+                color: cores.marrom,
+              }}
+            >
               ⚙
             </div>
 
-            <h3 style={{
-              fontSize: "22px",
-              margin: "24px 0 10px",
-            }}>
+            <h3
+              style={{
+                fontSize: "22px",
+                margin: "24px 0 10px",
+                color: cores.marrom,
+              }}
+            >
               Infraestrutura
             </h3>
 
-            <p style={{
-              color: "#77877b",
-              lineHeight: 1.7,
-              fontSize: "14px",
-              minHeight: "48px",
-            }}>
+            <p
+              style={{
+                color: cores.textoSecundario,
+                lineHeight: 1.7,
+                fontSize: "14px",
+                minHeight: "48px",
+              }}
+            >
               Consulte equipamentos e acompanhe suas condições
               de funcionamento e manutenção.
             </p>
 
-            <p style={{
-              color: "#8b968e",
-              fontWeight: "bold",
-              marginTop: "25px",
-            }}>
-              Em desenvolvimento
+            <p
+              style={{
+                color: cores.douradoEscuro,
+                fontWeight: "bold",
+                marginTop: "25px",
+              }}
+            >
+              Acessar módulo →
             </p>
-          </div>
-
+          </Link>
         </div>
       </section>
 
-      <footer style={{
-        maxWidth: "1250px",
-        margin: "100px auto 0",
-        padding: "20px 0",
-        borderTop: "1px solid #e0e8e0",
-        color: "#89958d",
-        fontSize: "13px",
-        display: "flex",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: "10px",
-      }}>
+      {/* RODAPÉ */}
+
+      <footer
+        style={{
+          maxWidth: "1250px",
+          margin: "100px auto 0",
+          padding: "20px 0",
+          borderTop: `1px solid ${cores.borda}`,
+          color: cores.textoSecundario,
+          fontSize: "13px",
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "10px",
+        }}
+      >
         <span>Capim Gestão · Capim Dourado Shopping</span>
         <span>Protótipo demonstrativo · Equipe Typhlosion</span>
       </footer>
-
     </main>
   );
 }
