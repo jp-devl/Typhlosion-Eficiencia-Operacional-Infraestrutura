@@ -1,725 +1,608 @@
-
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 
-type Status = "Pendente" | "Em andamento" | "Resolvido";
-type Prioridade = "Baixa" | "Média" | "Alta";
-
-type Ocorrencia = {
-  id: number;
-  titulo: string;
-  local: string;
+interface Equipamento {
+  id: string;
+  nome: string;
+  setor: string;
   categoria: string;
-  prioridade: Prioridade;
-  status: Status;
-  responsavel: string;
-  data: string;
-  descricao: string;
+  status: "Operacional" | "Em Manutenção" | "Inoperante";
+  ultimaInspecao: string;
+  observacao: string;
+}
+
+const cores = {
+  dourado: "#b4903d",
+  douradoEscuro: "#8c6a26",
+  marrom: "#78581e",
+  texto: "#292114",
+  textoSecundario: "#6b5e4c",
+  bege: "#f3ead6",
+  fundo: "#f8f5ee",
+  borda: "#e2d9c8",
+  branco: "#ffffff",
 };
 
-const iniciais: Ocorrencia[] = [
+const STORAGE_KEY = "capim_gestao_infraestrutura";
+
+const equipamentosIniciais: Equipamento[] = [
   {
-    id: 1,
-    titulo: "Luminária com defeito",
-    local: "Praça de Alimentação",
-    categoria: "Elétrica",
-    prioridade: "Média",
-    status: "Pendente",
-    responsavel: "Equipe de Manutenção",
-    data: "14/11/2026",
-    descricao: "Luminária apagada na área de circulação.",
-  },
-  {
-    id: 2,
-    titulo: "Ar-condicionado sem refrigeração",
-    local: "Corredor Norte",
+    id: "EQ-01",
+    nome: "Chiller Central 01 (CAG)",
+    setor: "Casa de Máquinas",
     categoria: "Climatização",
-    prioridade: "Alta",
-    status: "Em andamento",
-    responsavel: "Equipe Técnica",
-    data: "14/11/2026",
-    descricao: "Temperatura acima do esperado no corredor.",
+    status: "Operacional",
+    ultimaInspecao: "14/11/2026",
+    observacao: "Pressão e temperatura operando dentro da faixa nominal.",
   },
   {
-    id: 3,
-    titulo: "Vazamento em torneira",
-    local: "Banheiro do Térreo",
+    id: "EQ-02",
+    nome: "Escada Rolante — Acesso Norte",
+    setor: "Corredor Norte",
+    categoria: "Transporte Vertical",
+    status: "Em Manutenção",
+    ultimaInspecao: "14/11/2026",
+    observacao: "Troca preventiva de corrimão e lubrificação de corrente.",
+  },
+  {
+    id: "EQ-03",
+    nome: "Grupo Gerador Diesel 750 kVA",
+    setor: "Subestação Elétrica",
+    categoria: "Energia",
+    status: "Operacional",
+    ultimaInspecao: "13/11/2026",
+    observacao: "Teste de transferência automática concluído sem falhas.",
+  },
+  {
+    id: "EQ-04",
+    nome: "Bomba de Recalque Hidráulico 02",
+    setor: "Estacionamento",
     categoria: "Hidráulica",
-    prioridade: "Média",
-    status: "Resolvido",
-    responsavel: "Equipe Hidráulica",
-    data: "13/11/2026",
-    descricao: "Torneira apresentava vazamento contínuo.",
-  },
-  {
-    id: 4,
-    titulo: "Piso danificado",
-    local: "Entrada Principal",
-    categoria: "Estrutura",
-    prioridade: "Alta",
-    status: "Pendente",
-    responsavel: "Equipe de Manutenção",
-    data: "14/11/2026",
-    descricao: "Piso necessita de reparo preventivo.",
+    status: "Inoperante",
+    ultimaInspecao: "14/11/2026",
+    observacao: "Aguardando substituição de selo mecânico pela equipe técnica.",
   },
 ];
 
-const cores: Record<Status, string> = {
-  Pendente: "#b45309",
-  "Em andamento": "#2563eb",
-  Resolvido: "#15803d",
-};
+export default function GestaoInfraestrutura() {
+  const [listaEquipamentos, setListaEquipamentos] = useState<Equipamento[]>([]);
+  const [nome, setNome] = useState("");
+  const [setor, setSetor] = useState("Casa de Máquinas");
+  const [categoria, setCategoria] = useState("Climatização");
+  const [status, setStatus] = useState<Equipamento["status"]>("Operacional");
+  const [observacao, setObservacao] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<string>("Todos");
 
-const estiloCampo = {
-  width: "100%",
-  padding: "12px",
-  border: "1px solid #e2d9c8",
-  borderRadius: "10px",
-  background: "#fff",
-  color: "#292114",
-} as const;
+  useEffect(() => {
+    const salvos = localStorage.getItem(STORAGE_KEY);
+    if (salvos) {
+      setListaEquipamentos(JSON.parse(salvos));
+    } else {
+      setListaEquipamentos(equipamentosIniciais);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(equipamentosIniciais));
+    }
+  }, []);
 
-export default function InfraestruturaPage() {
-  const [ocorrencias, setOcorrencias] = useState(iniciais);
-  const [filtro, setFiltro] = useState("Todos");
-  const [busca, setBusca] = useState("");
-  const [modalAberto, setModalAberto] = useState(false);
-  const [selecionada, setSelecionada] = useState<Ocorrencia | null>(null);
+  function salvarNoStorage(novaLista: Equipamento[]) {
+    setListaEquipamentos(novaLista);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(novaLista));
+  }
 
-  const [titulo, setTitulo] = useState("");
-  const [local, setLocal] = useState("");
-  const [categoria, setCategoria] = useState("Elétrica");
-  const [prioridade, setPrioridade] = useState<Prioridade>("Média");
-  const [descricao, setDescricao] = useState("");
+  function cadastrarEquipamento(evento: FormEvent) {
+    evento.preventDefault();
+    if (!nome.trim()) return;
 
-  const total = ocorrencias.length;
-  const pendentes = ocorrencias.filter(
-    (o) => o.status === "Pendente"
-  ).length;
-  const andamento = ocorrencias.filter(
-    (o) => o.status === "Em andamento"
-  ).length;
-  const resolvidas = ocorrencias.filter(
-    (o) => o.status === "Resolvido"
-  ).length;
-
-  const filtradas = useMemo(() => {
-    return ocorrencias.filter((o) => {
-      const correspondeStatus =
-        filtro === "Todos" || o.status === filtro;
-
-      const termo = busca.toLowerCase();
-
-      const correspondeBusca =
-        o.titulo.toLowerCase().includes(termo) ||
-        o.local.toLowerCase().includes(termo) ||
-        o.categoria.toLowerCase().includes(termo);
-
-      return correspondeStatus && correspondeBusca;
-    });
-  }, [ocorrencias, filtro, busca]);
-
-  function registrar(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    if (!titulo.trim() || !local.trim()) return;
-
-    const nova: Ocorrencia = {
-      id: Date.now(),
-      titulo: titulo.trim(),
-      local: local.trim(),
+    const novoEquipamento: Equipamento = {
+      id: `EQ-${Math.floor(10 + Math.random() * 89)}`,
+      nome: nome.trim(),
+      setor,
       categoria,
-      prioridade,
-      status: "Pendente",
-      responsavel: "Aguardando atribuição",
-      data: new Date().toLocaleDateString("pt-BR"),
-      descricao: descricao.trim() || "Sem descrição adicional.",
+      status,
+      ultimaInspecao: new Date().toLocaleDateString("pt-BR"),
+      observacao: observacao.trim() || "Equipamento cadastrado e sem pendências.",
     };
 
-    setOcorrencias((anteriores) => [nova, ...anteriores]);
-    setTitulo("");
-    setLocal("");
-    setCategoria("Elétrica");
-    setPrioridade("Média");
-    setDescricao("");
-    setFiltro("Todos");
-    setBusca("");
-    setModalAberto(false);
+    salvarNoStorage([novoEquipamento, ...listaEquipamentos]);
+    setNome("");
+    setObservacao("");
   }
 
-  function atualizarStatus(id: number, status: Status) {
-    setOcorrencias((anteriores) =>
-      anteriores.map((o) =>
-        o.id === id ? { ...o, status } : o
-      )
-    );
-
-    setSelecionada((atual) =>
-      atual?.id === id ? { ...atual, status } : atual
-    );
+  function alternarStatus(id: string) {
+    const ordemStatus: Equipamento["status"][] = [
+      "Operacional",
+      "Em Manutenção",
+      "Inoperante",
+    ];
+    const atualizada = listaEquipamentos.map((item) => {
+      if (item.id !== id) return item;
+      const proximoIndice = (ordemStatus.indexOf(item.status) + 1) % ordemStatus.length;
+      return { ...item, status: ordemStatus[proximoIndice] };
+    });
+    salvarNoStorage(atualizada);
   }
 
+  const equipamentosFiltrados =
+    filtroStatus === "Todos"
+      ? listaEquipamentos
+      : listaEquipamentos.filter((item) => item.status === filtroStatus);
+
+  const totalOperacionais = listaEquipamentos.filter((e) => e.status === "Operacional").length;
+  const totalManutencao = listaEquipamentos.filter((e) => e.status === "Em Manutenção").length;
+  const totalInoperantes = listaEquipamentos.filter((e) => e.status === "Inoperante").length;
+
+  function obterCorStatus(estado: Equipamento["status"]) {
+    if (estado === "Inoperante") return { bg: "#fee2e2", text: "#991b1b" };
+    if (estado === "Em Manutenção") return { bg: "#fef3c7", text: "#92400e" };
+    return { bg: "#dcfce7", text: "#166534" };
+  }
   return (
-    <main className="infra-page">
-      <div className="infra-container">
-        <header className="infra-header">
-          <div>
-            <p className="infra-eyebrow">CAPIM GESTÃO • OPERAÇÕES</p>
-            <h1>Gestão de Infraestrutura</h1>
-            <p>
-              Acompanhamento de manutenção e ocorrências do shopping.
+    <main
+      style={{
+        width: "100%",
+        maxWidth: "none",
+        minHeight: "100vh",
+        boxSizing: "border-box",
+        margin: 0,
+        padding: "35px 6%",
+        background: cores.fundo,
+        color: cores.texto,
+        fontFamily: "Segoe UI, Arial, sans-serif",
+      }}
+    >
+      {/* CABEÇALHO DO MÓDULO */}
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "20px",
+          paddingBottom: "25px",
+          borderBottom: `1px solid ${cores.borda}`,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap" }}>
+          <img
+            src="/images/logo-capim-dourado.jpg"
+            alt="Logo Capim Dourado Shopping"
+            style={{
+              height: "52px",
+              width: "auto",
+              mixBlendMode: "multiply",
+            }}
+          />
+
+          <div
+            style={{
+              borderLeft: `2px solid ${cores.borda}`,
+              paddingLeft: "18px",
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "28px",
+                margin: 0,
+                color: cores.marrom,
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              Gestão de Infraestrutura
+            </h1>
+            <p style={{ margin: "4px 0 0", color: cores.textoSecundario, fontSize: "14px" }}>
+              Cadastro, monitoramento e status operacional dos equipamentos do shopping
             </p>
           </div>
+        </div>
 
-          <Link href="/painel" className="infra-back">
-            ← Voltar ao painel
-          </Link>
-        </header>
+        <Link
+          href="/painel"
+          style={{
+            background: cores.branco,
+            color: cores.marrom,
+            border: `1px solid ${cores.borda}`,
+            padding: "10px 18px",
+            borderRadius: "30px",
+            fontSize: "13px",
+            fontWeight: "bold",
+            textDecoration: "none",
+          }}
+        >
+          ← Voltar ao Painel
+        </Link>
+      </header>
 
-        <section className="infra-stats">
-          {[
-            { titulo: "Total de ocorrências", valor: total, cor: "#78581e" },
-            { titulo: "Pendentes", valor: pendentes, cor: "#b45309" },
-            { titulo: "Em andamento", valor: andamento, cor: "#2563eb" },
-            { titulo: "Resolvidas", valor: resolvidas, cor: "#15803d" },
-          ].map((item) => (
-            <article className="infra-stat" key={item.titulo}>
-              <span>{item.titulo}</span>
-              <strong style={{ color: item.cor }}>{item.valor}</strong>
-            </article>
-          ))}
-        </section>
+      <section style={{ maxWidth: "1250px", margin: "40px auto 0" }}>
+        {/* RESUMO DE INDICADORES */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "20px",
+            marginBottom: "35px",
+          }}
+        >
+          <article
+            style={{
+              background: cores.branco,
+              border: `1px solid ${cores.borda}`,
+              borderRadius: "16px",
+              padding: "22px",
+            }}
+          >
+            <span style={{ fontSize: "12px", fontWeight: "bold", color: "#166534" }}>
+              EQUIPAMENTOS OPERACIONAIS
+            </span>
+            <p style={{ fontSize: "32px", fontWeight: "bold", color: "#166534", marginTop: "6px" }}>
+              {totalOperacionais}
+            </p>
+          </article>
 
-        <section className="infra-panel">
-          <div className="infra-panel-top">
-            <div>
-              <h2>Ocorrências registradas</h2>
-              <p>Consulte e acompanhe as solicitações de manutenção.</p>
+          <article
+            style={{
+              background: cores.branco,
+              border: `1px solid ${cores.borda}`,
+              borderRadius: "16px",
+              padding: "22px",
+            }}
+          >
+            <span style={{ fontSize: "12px", fontWeight: "bold", color: "#92400e" }}>
+              EM MANUTENÇÃO
+            </span>
+            <p style={{ fontSize: "32px", fontWeight: "bold", color: "#92400e", marginTop: "6px" }}>
+              {totalManutencao}
+            </p>
+          </article>
+
+          <article
+            style={{
+              background: cores.branco,
+              border: `1px solid ${cores.borda}`,
+              borderRadius: "16px",
+              padding: "22px",
+            }}
+          >
+            <span style={{ fontSize: "12px", fontWeight: "bold", color: "#991b1b" }}>
+              ALERTAS / INOPERANTES
+            </span>
+            <p style={{ fontSize: "32px", fontWeight: "bold", color: "#991b1b", marginTop: "6px" }}>
+              {totalInoperantes}
+            </p>
+          </article>
+        </div>
+        {/* GRADE PRINCIPAL: FORMULÁRIO + LISTA */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+            gap: "30px",
+            alignItems: "start",
+          }}
+        >
+          {/* FORMULÁRIO DE CADASTRO */}
+          <section
+            style={{
+              background: cores.branco,
+              border: `1px solid ${cores.borda}`,
+              borderRadius: "18px",
+              padding: "28px",
+              boxShadow: "0 8px 25px rgba(68, 49, 15, 0.06)",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "20px",
+                color: cores.marrom,
+                fontFamily: "Georgia, serif",
+                marginBottom: "18px",
+              }}
+            >
+              Cadastrar Equipamento
+            </h2>
+
+            <form
+              onSubmit={cadastrarEquipamento}
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
+              <div>
+                <label
+                  htmlFor="nome"
+                  style={{ display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "6px" }}
+                >
+                  Nome do Equipamento / Ativo *
+                </label>
+                <input
+                  id="nome"
+                  type="text"
+                  required
+                  placeholder="Ex: Elevador Panorâmico 01"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    borderRadius: "10px",
+                    border: `1px solid ${cores.borda}`,
+                    background: "#fcfbf9",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="setor"
+                  style={{ display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "6px" }}
+                >
+                  Setor de Instalação
+                </label>
+                <select
+                  id="setor"
+                  value={setor}
+                  onChange={(e) => setSetor(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    borderRadius: "10px",
+                    border: `1px solid ${cores.borda}`,
+                    background: "#fcfbf9",
+                  }}
+                >
+                  <option value="Casa de Máquinas">Casa de Máquinas</option>
+                  <option value="Subestação Elétrica">Subestação Elétrica</option>
+                  <option value="Praça de Alimentação">Praça de Alimentação</option>
+                  <option value="Corredor Norte">Corredor Norte</option>
+                  <option value="Corredor Sul">Corredor Sul</option>
+                  <option value="Estacionamento">Estacionamento</option>
+                </select>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label
+                    htmlFor="categoria"
+                    style={{ display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "6px" }}
+                  >
+                    Sistema
+                  </label>
+                  <select
+                    id="categoria"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: `1px solid ${cores.borda}`,
+                      background: "#fcfbf9",
+                    }}
+                  >
+                    <option value="Climatização">Climatização</option>
+                    <option value="Energia">Energia</option>
+                    <option value="Transporte Vertical">Transporte Vertical</option>
+                    <option value="Hidráulica">Hidráulica</option>
+                    <option value="Segurança e Incêndio">Segurança e Incêndio</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="status"
+                    style={{ display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "6px" }}
+                  >
+                    Condição Atual
+                  </label>
+                  <select
+                    id="status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as Equipamento["status"])}
+                    style={{
+                      width: "100%",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: `1px solid ${cores.borda}`,
+                      background: "#fcfbf9",
+                    }}
+                  >
+                    <option value="Operacional">Operacional</option>
+                    <option value="Em Manutenção">Em Manutenção</option>
+                    <option value="Inoperante">Inoperante</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="observacao"
+                  style={{ display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "6px" }}
+                >
+                  Observações Técnicas
+                </label>
+                <textarea
+                  id="observacao"
+                  rows={3}
+                  placeholder="Informe capacidade, modelo ou notas de inspeção..."
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    borderRadius: "10px",
+                    border: `1px solid ${cores.borda}`,
+                    background: "#fcfbf9",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  marginTop: "6px",
+                  padding: "13px",
+                  borderRadius: "999px",
+                  border: "none",
+                  background: `linear-gradient(90deg, ${cores.dourado} 0%, ${cores.douradoEscuro} 100%)`,
+                  color: cores.branco,
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                Cadastrar Equipamento
+              </button>
+            </form>
+          </section>
+          {/* LISTA DE EQUIPAMENTOS */}
+          <section
+            style={{
+              background: cores.branco,
+              border: `1px solid ${cores.borda}`,
+              borderRadius: "18px",
+              padding: "28px",
+              boxShadow: "0 8px 25px rgba(68, 49, 15, 0.06)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", color: cores.marrom, fontFamily: "Georgia, serif" }}>
+                Equipamentos Monitorados ({equipamentosFiltrados.length})
+              </h2>
+
+              <select
+                aria-label="Filtrar equipamentos por condição"
+                value={filtroStatus}
+                onChange={(e) => setFiltroStatus(e.target.value)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "999px",
+                  border: `1px solid ${cores.borda}`,
+                  background: cores.fundo,
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  color: cores.marrom,
+                }}
+              >
+                <option value="Todos">Todos</option>
+                <option value="Operacional">Operacionais</option>
+                <option value="Em Manutenção">Em Manutenção</option>
+                <option value="Inoperante">Inoperantes</option>
+              </select>
             </div>
 
-            <button
-              className="infra-primary"
-              onClick={() => setModalAberto(true)}
-            >
-              + Nova ocorrência
-            </button>
-          </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {equipamentosFiltrados.map((item) => {
+                const badge = obterCorStatus(item.status);
+                return (
+                  <article
+                    key={item.id}
+                    style={{
+                      border: `1px solid ${cores.borda}`,
+                      borderRadius: "14px",
+                      padding: "18px",
+                      background: "#fcfbf9",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", fontWeight: "bold", color: cores.douradoEscuro }}>
+                        {item.id} · {item.setor} · {item.categoria}
+                      </span>
 
-          <div className="infra-filters">
-            <input
-              aria-label="Buscar ocorrências"
-              placeholder="Buscar problema, local ou categoria..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-
-            <select
-              aria-label="Filtrar por status"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-            >
-              <option value="Todos">Todos os status</option>
-              <option value="Pendente">Pendente</option>
-              <option value="Em andamento">Em andamento</option>
-              <option value="Resolvido">Resolvido</option>
-            </select>
-          </div>
-
-          <div className="infra-list">
-            {filtradas.length === 0 ? (
-              <p>Nenhuma ocorrência encontrada.</p>
-            ) : (
-              filtradas.map((o) => (
-                <article className="infra-item" key={o.id}>
-                  <div className="infra-item-main">
-                    <div className="infra-item-heading">
-                      <h3>{o.titulo}</h3>
                       <span
-                        className="infra-status"
                         style={{
-                          color: cores[o.status],
-                          backgroundColor: `${cores[o.status]}15`,
+                          background: badge.bg,
+                          color: badge.text,
+                          padding: "4px 10px",
+                          borderRadius: "999px",
+                          fontSize: "11px",
+                          fontWeight: "bold",
                         }}
                       >
-                        {o.status}
+                        {item.status}
                       </span>
                     </div>
 
-                    <p>📍 {o.local}</p>
-                    <div className="infra-meta">
-                      <span>{o.categoria}</span>
-                      <span>Prioridade: {o.prioridade}</span>
-                      <span>{o.data}</span>
+                    <h3 style={{ fontSize: "16px", color: cores.texto, marginBottom: "6px" }}>
+                      {item.nome}
+                    </h3>
+
+                    <p style={{ fontSize: "13px", color: cores.textoSecundario, marginBottom: "14px" }}>
+                      {item.observacao}
+                    </p>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderTop: `1px solid ${cores.borda}`,
+                        paddingTop: "10px",
+                        fontSize: "12px",
+                        color: cores.textoSecundario,
+                      }}
+                    >
+                      <span>Última inspeção: {item.ultimaInspecao}</span>
+
+                      <button
+                        type="button"
+                        onClick={() => alternarStatus(item.id)}
+                        title="Clique para alterar a condição do equipamento"
+                        style={{
+                          background: cores.bege,
+                          color: cores.marrom,
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: "999px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Alterar condição ↻
+                      </button>
                     </div>
-                  </div>
-
-                  <button
-                    className="infra-details"
-                    onClick={() => setSelecionada(o)}
-                  >
-                    Ver detalhes
-                  </button>
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-
-      {modalAberto && (
-        <div className="infra-overlay" onClick={() => setModalAberto(false)}>
-          <div
-            className="infra-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Nova ocorrência"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Registrar ocorrência</h2>
-            <p>Informe os dados do problema identificado.</p>
-
-            <form onSubmit={registrar}>
-              <label>
-                Título do problema
-                <input
-                  required
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  style={estiloCampo}
-                  placeholder="Ex.: Iluminação danificada"
-                />
-              </label>
-
-              <label>
-                Localização
-                <input
-                  required
-                  value={local}
-                  onChange={(e) => setLocal(e.target.value)}
-                  style={estiloCampo}
-                  placeholder="Ex.: Corredor principal"
-                />
-              </label>
-
-              <label>
-                Categoria
-                <select
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  style={estiloCampo}
-                >
-                  <option>Elétrica</option>
-                  <option>Hidráulica</option>
-                  <option>Climatização</option>
-                  <option>Estrutura</option>
-                  <option>Limpeza</option>
-                  <option>Outros</option>
-                </select>
-              </label>
-
-              <label>
-                Prioridade
-                <select
-                  value={prioridade}
-                  onChange={(e) =>
-                    setPrioridade(e.target.value as Prioridade)
-                  }
-                  style={estiloCampo}
-                >
-                  <option>Baixa</option>
-                  <option>Média</option>
-                  <option>Alta</option>
-                </select>
-              </label>
-
-              <label>
-                Descrição
-                <textarea
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  style={{ ...estiloCampo, minHeight: 80 }}
-                  placeholder="Descreva o problema..."
-                />
-              </label>
-
-              <div className="infra-actions">
-                <button
-                  type="button"
-                  className="infra-secondary"
-                  onClick={() => setModalAberto(false)}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="infra-primary">
-                  Registrar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {selecionada && (
-        <div className="infra-overlay" onClick={() => setSelecionada(null)}>
-          <div
-            className="infra-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Detalhes da ocorrência"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>{selecionada.titulo}</h2>
-            <p>{selecionada.descricao}</p>
-
-            <div className="infra-info">
-              <p><strong>Local:</strong> {selecionada.local}</p>
-              <p><strong>Categoria:</strong> {selecionada.categoria}</p>
-              <p><strong>Prioridade:</strong> {selecionada.prioridade}</p>
-              <p><strong>Responsável:</strong> {selecionada.responsavel}</p>
-              <p><strong>Data:</strong> {selecionada.data}</p>
+                  </article>
+                );
+              })}
             </div>
-
-            <label>
-              <strong>Status da ocorrência</strong>
-              <select
-                value={selecionada.status}
-                onChange={(e) =>
-                  atualizarStatus(
-                    selecionada.id,
-                    e.target.value as Status
-                  )
-                }
-                style={{ ...estiloCampo, marginTop: 8 }}
-              >
-                <option>Pendente</option>
-                <option>Em andamento</option>
-                <option>Resolvido</option>
-              </select>
-            </label>
-
-            <div className="infra-actions">
-              <button
-                className="infra-primary"
-                onClick={() => setSelecionada(null)}
-              >
-                Concluir
-              </button>
-            </div>
-          </div>
+          </section>
         </div>
-      )}
+      </section>
 
-      <style jsx global>{`
-        body:has(.infra-page) {
-          display: block;
-          padding: 0;
-          background: #f5f1e9;
-        }
-
-        .infra-page {
-          min-height: 100vh;
-          width: 100%;
-          background: #f5f1e9;
-          padding: 38px 24px 70px;
-          color: #292114;
-        }
-
-        .infra-container {
-          max-width: 1180px;
-          margin: 0 auto;
-        }
-
-        .infra-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 28px;
-        }
-
-        .infra-eyebrow {
-          color: #b4903d;
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 2px;
-          margin-bottom: 10px;
-        }
-
-        .infra-header h1 {
-          font-size: clamp(26px, 4vw, 38px);
-          color: #78581e;
-          margin-bottom: 8px;
-        }
-
-        .infra-header p,
-        .infra-panel-top p {
-          color: #786b59;
-          font-size: 14px;
-        }
-
-        .infra-back {
-          color: #78581e;
-          text-decoration: none;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .infra-stats {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 16px;
-          margin-bottom: 25px;
-        }
-
-        .infra-stat {
-          background: white;
-          border: 1px solid #e2d9c8;
-          border-radius: 16px;
-          padding: 23px;
-          box-shadow: 0 5px 18px #49380e0a;
-        }
-
-        .infra-stat span {
-          display: block;
-          font-size: 13px;
-          color: #786b59;
-          margin-bottom: 12px;
-        }
-
-        .infra-stat strong {
-          font-size: 36px;
-        }
-
-        .infra-panel {
-          background: white;
-          border: 1px solid #e2d9c8;
-          border-radius: 18px;
-          padding: 26px;
-          box-shadow: 0 8px 25px #49380e0a;
-        }
-
-        .infra-panel-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        .infra-panel-top h2 {
-          color: #78581e;
-          margin-bottom: 6px;
-        }
-
-        .infra-primary {
-          background: linear-gradient(90deg, #b4903d, #8c6a26);
-          color: white;
-          border: none;
-          border-radius: 10px;
-          padding: 12px 18px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .infra-secondary {
-          background: #f3ead6;
-          color: #78581e;
-          border: none;
-          border-radius: 10px;
-          padding: 12px 18px;
-          cursor: pointer;
-        }
-
-        .infra-filters {
-          display: flex;
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-
-        .infra-filters input,
-        .infra-filters select {
-          padding: 12px 14px;
-          border: 1px solid #e2d9c8;
-          border-radius: 10px;
-          background: #fcfbf9;
-          color: #292114;
-        }
-
-        .infra-filters input {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .infra-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding: 20px 0;
-          border-bottom: 1px solid #eee6d8;
-        }
-
-        .infra-item:last-child {
-          border-bottom: none;
-        }
-
-        .infra-item-heading {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin-bottom: 8px;
-        }
-
-        .infra-item h3 {
-          font-size: 16px;
-          color: #292114;
-        }
-
-        .infra-item-main > p {
-          color: #786b59;
-          font-size: 13px;
-          margin-bottom: 9px;
-        }
-
-        .infra-status {
-          font-size: 12px;
-          font-weight: 700;
-          padding: 5px 10px;
-          border-radius: 999px;
-        }
-
-        .infra-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 14px;
-          color: #8b7b66;
-          font-size: 12px;
-        }
-
-        .infra-details {
-          border: 1px solid #b4903d;
-          background: white;
-          color: #78581e;
-          border-radius: 9px;
-          padding: 10px 14px;
-          font-weight: 700;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-
-        .infra-overlay {
-          position: fixed;
-          inset: 0;
-          background: #1d170fc2;
-          z-index: 1000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 18px;
-        }
-
-        .infra-modal {
-          width: 100%;
-          max-width: 490px;
-          max-height: 90vh;
-          overflow-y: auto;
-          background: white;
-          border-radius: 18px;
-          padding: 28px;
-          box-shadow: 0 25px 70px #0004;
-        }
-
-        .infra-modal h2 {
-          color: #78581e;
-          margin-bottom: 10px;
-        }
-
-        .infra-modal > p {
-          color: #786b59;
-          margin-bottom: 22px;
-          line-height: 1.5;
-        }
-
-        .infra-modal form {
-          display: grid;
-          gap: 14px;
-        }
-
-        .infra-modal label {
-          display: block;
-          color: #51432f;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .infra-modal label input,
-        .infra-modal label select,
-        .infra-modal label textarea {
-          display: block;
-          margin-top: 6px;
-          font-weight: 400;
-        }
-
-        .infra-info {
-          display: grid;
-          gap: 12px;
-          padding: 18px;
-          background: #faf7f0;
-          border-radius: 12px;
-          margin-bottom: 20px;
-          font-size: 14px;
-        }
-
-        .infra-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 20px;
-        }
-
-        @media (max-width: 800px) {
-          .infra-stats {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .infra-header,
-          .infra-panel-top {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-        }
-
-        @media (max-width: 550px) {
-          .infra-page {
-            padding: 20px 12px 40px;
-          }
-
-          .infra-panel {
-            padding: 18px;
-          }
-
-          .infra-filters,
-          .infra-item {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .infra-stats {
-            gap: 10px;
-          }
-
-          .infra-stat {
-            padding: 16px;
-          }
-
-          .infra-stat strong {
-            font-size: 28px;
-          }
-        }
-      `}</style>
+      {/* RODAPÉ PADRÃO */}
+      <footer
+        style={{
+          maxWidth: "1250px",
+          margin: "80px auto 0",
+          padding: "20px 0",
+          borderTop: `1px solid ${cores.borda}`,
+          color: cores.textoSecundario,
+          fontSize: "13px",
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "10px",
+        }}
+      >
+        <span>Capim Gestão · Capim Dourado Shopping</span>
+        <span>Protótipo demonstrativo · Equipe Typhlosion</span>
+      </footer>
     </main>
   );
 }
