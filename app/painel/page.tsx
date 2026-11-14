@@ -292,6 +292,38 @@ export default function Painel() {
             </p>
           </Link>
 
+          {/* EQUIPES E ATIVIDADES */}
+          <Link href="/equipes" style={estiloCartao}>
+            <div
+              style={{
+                width: "55px",
+                height: "55px",
+                borderRadius: "14px",
+                background: cores.bege,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "27px",
+                color: cores.marrom,
+              }}
+            >
+              ⚒
+            </div>
+
+            <h3 style={{ fontSize: "22px", margin: "24px 0 10px", color: cores.marrom }}>
+              Equipes e Atividades
+            </h3>
+
+            <p style={{ color: cores.textoSecundario, lineHeight: 1.7, fontSize: "14px", minHeight: "48px" }}>
+              Distribua ordens de serviço, atribua responsáveis e acompanhe a execução em campo.
+            </p>
+
+            <p style={{ color: cores.douradoEscuro, fontWeight: "bold", marginTop: "25px" }}>
+              Acessar módulo →
+            </p>
+          </Link>
+
+
         </div>
       </section>
 

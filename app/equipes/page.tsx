@@ -1,31 +1,18 @@
 
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 
-type Status =
-  | "Pendente"
-  | "Em Execução"
-  | "Concluída"
-  | "Cancelada";
-
+type Status = "Pendente" | "Em Execução" | "Concluída" | "Cancelada";
 type Prioridade = "Baixa" | "Média" | "Alta" | "Crítica";
-
-type Equipe =
-  | "Manutenção Elétrica"
-  | "Refrigeração"
-  | "Limpeza"
-  | "Predial";
 
 type Atividade = {
   id: string;
   titulo: string;
-  equipe: Equipe;
+  equipe: string;
+  responsavel: string;
+  setor: string;
   prioridade: Prioridade;
   prazo: string;
   status: Status;
@@ -34,13 +21,29 @@ type Atividade = {
   alterado: boolean;
 };
 
-const STORAGE_KEY = "capim_gestao_atividades_v8";
+const STORAGE_KEY = "capim_gestao_equipes_unificado_v1";
 
-const equipes: Equipe[] = [
+const equipes = [
   "Manutenção Elétrica",
   "Refrigeração",
+  "Climatização",
+  "Hidráulica",
   "Limpeza",
+  "Limpeza e Conservação",
   "Predial",
+  "Segurança Patrimonial",
+];
+
+const setores = [
+  "Praça de Alimentação",
+  "Corredor Norte",
+  "Corredor Sul",
+  "Subestação Elétrica",
+  "Casa de Máquinas",
+  "Estacionamento",
+  "Sanitários",
+  "Cobertura Sul",
+  "Outros",
 ];
 
 const prioridades: Prioridade[] = [
@@ -57,11 +60,13 @@ const statusOpcoes: Status[] = [
   "Cancelada",
 ];
 
-const iniciais: Atividade[] = [
+const atividadesIniciais: Atividade[] = [
   {
     id: "OS-001",
     titulo: "Inspeção de pressão e troca de filtro do Chiller 02",
     equipe: "Refrigeração",
+    responsavel: "Juliana Costa",
+    setor: "Casa de Máquinas",
     prioridade: "Alta",
     prazo: "2026-11-14T14:00",
     status: "Em Execução",
@@ -73,6 +78,8 @@ const iniciais: Atividade[] = [
     id: "OS-002",
     titulo: "Troca de reatores LED no Corredor Norte (Piso L2)",
     equipe: "Manutenção Elétrica",
+    responsavel: "Marcos Silva",
+    setor: "Corredor Norte",
     prioridade: "Média",
     prazo: "2026-11-14T18:30",
     status: "Pendente",
@@ -82,9 +89,10 @@ const iniciais: Atividade[] = [
   },
   {
     id: "OS-003",
-    titulo:
-      "Higienização e secagem após reparo hidráulico - Sanitário L1",
+    titulo: "Higienização após reparo hidráulico - Sanitário L1",
     equipe: "Limpeza",
+    responsavel: "Ana Souza",
+    setor: "Sanitários",
     prioridade: "Alta",
     prazo: "2026-11-13T21:00",
     status: "Concluída",
@@ -94,9 +102,10 @@ const iniciais: Atividade[] = [
   },
   {
     id: "OS-004",
-    titulo:
-      "Reassentamento de porcelanato próximo à Praça de Alimentação",
+    titulo: "Reassentamento de porcelanato próximo à Praça de Alimentação",
     equipe: "Predial",
+    responsavel: "Equipe Predial",
+    setor: "Praça de Alimentação",
     prioridade: "Crítica",
     prazo: "2026-11-14T08:00",
     status: "Pendente",
@@ -104,57 +113,118 @@ const iniciais: Atividade[] = [
     dataSolicitacao: "2026-11-13T08:00",
     alterado: false,
   },
+  {
+    id: "OS-201",
+    titulo: "Revisão preventiva do quadro elétrico central",
+    equipe: "Manutenção Elétrica",
+    responsavel: "Marcos Silva",
+    setor: "Subestação Elétrica",
+    prioridade: "Alta",
+    prazo: "2026-11-14T14:00",
+    status: "Em Execução",
+    observacoes: "Atividade preventiva",
+    dataSolicitacao: "2026-11-14T08:00",
+    alterado: false,
+  },
+  {
+    id: "OS-202",
+    titulo: "Higienização intensiva pós-horário de almoço",
+    equipe: "Limpeza e Conservação",
+    responsavel: "Ana Souza",
+    setor: "Praça de Alimentação",
+    prioridade: "Média",
+    prazo: "2026-11-14T15:30",
+    status: "Pendente",
+    observacoes: "Reforçar equipe de limpeza",
+    dataSolicitacao: "2026-11-14T09:00",
+    alterado: false,
+  },
+  {
+    id: "OS-203",
+    titulo: "Calibração de sensores de temperatura do Chiller 02",
+    equipe: "Climatização",
+    responsavel: "Juliana Costa",
+    setor: "Casa de Máquinas",
+    prioridade: "Alta",
+    prazo: "2026-11-14T11:00",
+    status: "Concluída",
+    observacoes: "Verificação dos sensores",
+    dataSolicitacao: "2026-11-13T10:00",
+    alterado: false,
+  },
+  {
+    id: "OS-204",
+    titulo: "Inspeção de hidrantes e extintores do piso térreo",
+    equipe: "Segurança Patrimonial",
+    responsavel: "Carlos Oliveira",
+    setor: "Corredor Norte",
+    prioridade: "Alta",
+    prazo: "2026-11-15T09:00",
+    status: "Pendente",
+    observacoes: "Inspeção preventiva",
+    dataSolicitacao: "2026-11-14T09:30",
+    alterado: false,
+  },
 ];
 
-function formatarPrazo(data: string) {
+function formatarData(data: string) {
   if (!data) return "—";
 
   const valor = new Date(data);
 
-  return Number.isNaN(valor.getTime())
-    ? data
-    : valor.toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+  if (Number.isNaN(valor.getTime())) {
+    return data;
+  }
+
+  return valor.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function numeroOS(id: string) {
   return Number(id.match(/\d+/)?.[0] ?? 0);
 }
 
-export default function EquipesPage() {
-  // CORREÇÃO: horário obtido após a montagem da página.
-  const [agora, setAgora] = useState<number | null>(null);
+function corStatus(status: Status) {
+  switch (status) {
+    case "Pendente":
+      return "pendente";
+    case "Em Execução":
+      return "execucao";
+    case "Concluída":
+      return "concluida";
+    case "Cancelada":
+      return "cancelada";
+  }
+}
 
-  const [atividades, setAtividades] =
-    useState<Atividade[]>(iniciais);
+export default function EquipesPage() {
+  const [atividades, setAtividades] = useState<Atividade[]>(
+    atividadesIniciais
+  );
 
   const [carregado, setCarregado] = useState(false);
-  const [modal, setModal] = useState(false);
+  const [agora, setAgora] = useState<number | null>(null);
 
   const [filtroEquipe, setFiltroEquipe] = useState("Todas");
-  const [filtroPrioridade, setFiltroPrioridade] =
-    useState("Todas");
   const [filtroStatus, setFiltroStatus] = useState("Todos");
+  const [filtroPrioridade, setFiltroPrioridade] = useState("Todas");
 
   const [titulo, setTitulo] = useState("");
-  const [equipe, setEquipe] = useState<Equipe | "">("");
-  const [prioridade, setPrioridade] =
-    useState<Prioridade>("Média");
+  const [equipe, setEquipe] = useState(equipes[0]);
+  const [responsavel, setResponsavel] = useState("");
+  const [setor, setSetor] = useState(setores[0]);
+  const [prioridade, setPrioridade] = useState<Prioridade>("Média");
   const [prazo, setPrazo] = useState("");
   const [observacoes, setObservacoes] = useState("");
 
-  // CORREÇÃO DO ERRO DO NEXT.JS
   useEffect(() => {
     setAgora(Date.now());
-  }, []);
 
-  // Recupera as atividades salvas no navegador.
-  useEffect(() => {
     try {
       const salvo = localStorage.getItem(STORAGE_KEY);
 
@@ -172,7 +242,6 @@ export default function EquipesPage() {
     setCarregado(true);
   }, []);
 
-  // Salva as alterações no navegador.
   useEffect(() => {
     if (carregado) {
       localStorage.setItem(
@@ -182,65 +251,55 @@ export default function EquipesPage() {
     }
   }, [atividades, carregado]);
 
-  // Aplica os filtros.
-  const filtradas = useMemo(
-    () =>
-      atividades
-        .filter(
-          (a) =>
-            (filtroEquipe === "Todas" ||
-              a.equipe === filtroEquipe) &&
-            (filtroPrioridade === "Todas" ||
-              a.prioridade === filtroPrioridade) &&
-            (filtroStatus === "Todos" ||
-              a.status === filtroStatus)
-        )
-        .sort(
-          (a, b) => numeroOS(a.id) - numeroOS(b.id)
-        ),
-    [
-      atividades,
-      filtroEquipe,
-      filtroPrioridade,
-      filtroStatus,
-    ]
-  );
+  const filtradas = useMemo(() => {
+    return atividades
+      .filter((atividade) => {
+        const equipeValida =
+          filtroEquipe === "Todas" ||
+          atividade.equipe === filtroEquipe;
 
-  // Indicadores da página.
-  const kpis = [
-    {
-      nome: "Total de Ordens de Serviço",
-      total: atividades.length,
-    },
-    ...statusOpcoes.map((s) => ({
-      nome:
-        s === "Em Execução"
-          ? "Em Execução"
-          : s === "Concluída"
-            ? "Concluídas"
-            : s === "Cancelada"
-              ? "Canceladas"
-              : "Pendentes",
-      total: atividades.filter(
-        (a) => a.status === s
-      ).length,
-    })),
-  ];
+        const statusValido =
+          filtroStatus === "Todos" ||
+          atividade.status === filtroStatus;
 
-  function alterarStatus(id: string, status: Status) {
-    setAtividades((lista) =>
-      lista.map((a) =>
-        a.id === id
-          ? { ...a, status, alterado: true }
-          : a
-      )
-    );
-  }
+        const prioridadeValida =
+          filtroPrioridade === "Todas" ||
+          atividade.prioridade === filtroPrioridade;
 
-  function criarOS(event: FormEvent<HTMLFormElement>) {
+        return equipeValida && statusValido && prioridadeValida;
+      })
+      .sort((a, b) => numeroOS(a.id) - numeroOS(b.id));
+  }, [
+    atividades,
+    filtroEquipe,
+    filtroStatus,
+    filtroPrioridade,
+  ]);
+
+  const totalPendentes = atividades.filter(
+    (a) => a.status === "Pendente"
+  ).length;
+
+  const totalExecucao = atividades.filter(
+    (a) => a.status === "Em Execução"
+  ).length;
+
+  const totalConcluidas = atividades.filter(
+    (a) => a.status === "Concluída"
+  ).length;
+
+  const totalCanceladas = atividades.filter(
+    (a) => a.status === "Cancelada"
+  ).length;
+
+  function criarAtividade(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!titulo.trim() || !equipe || !prazo) {
+    if (
+      !titulo.trim() ||
+      !responsavel.trim() ||
+      !prazo
+    ) {
       return;
     }
 
@@ -250,86 +309,274 @@ export default function EquipesPage() {
         ...atividades.map((a) => numeroOS(a.id))
       ) + 1;
 
-    const agoraLocal = new Date();
+    const dataAtual = new Date();
 
     const dataLocal = new Date(
-      agoraLocal.getTime() -
-        agoraLocal.getTimezoneOffset() * 60000
+      dataAtual.getTime() -
+        dataAtual.getTimezoneOffset() * 60000
     )
       .toISOString()
       .slice(0, 16);
 
-    setAtividades((lista) => [
-      ...lista,
-      {
-        id: `OS-${String(proximo).padStart(3, "0")}`,
-        titulo: titulo.trim(),
-        equipe,
-        prioridade,
-        prazo,
-        status: "Pendente",
-        observacoes: observacoes.trim(),
-        dataSolicitacao: dataLocal,
-        alterado: false,
-      },
-    ]);
+    const nova: Atividade = {
+      id: `OS-${String(proximo).padStart(3, "0")}`,
+      titulo: titulo.trim(),
+      equipe,
+      responsavel: responsavel.trim(),
+      setor,
+      prioridade,
+      prazo,
+      status: "Pendente",
+      observacoes: observacoes.trim(),
+      dataSolicitacao: dataLocal,
+      alterado: false,
+    };
+
+    setAtividades((lista) => [...lista, nova]);
 
     setAgora(Date.now());
-    setModal(false);
     setTitulo("");
-    setEquipe("");
-    setPrioridade("Média");
+    setResponsavel("");
     setPrazo("");
     setObservacoes("");
+    setPrioridade("Média");
+  }
+
+  function alterarStatus(id: string, novoStatus: Status) {
+    setAtividades((lista) =>
+      lista.map((atividade) =>
+        atividade.id === id
+          ? {
+              ...atividade,
+              status: novoStatus,
+              alterado: true,
+            }
+          : atividade
+      )
+    );
+  }
+
+  function avancarStatus(id: string) {
+    const ordem: Status[] = [
+      "Pendente",
+      "Em Execução",
+      "Concluída",
+      "Cancelada",
+    ];
+
+    setAtividades((lista) =>
+      lista.map((atividade) => {
+        if (atividade.id !== id) {
+          return atividade;
+        }
+
+        const indice = ordem.indexOf(atividade.status);
+        const proximo = ordem[(indice + 1) % ordem.length];
+
+        return {
+          ...atividade,
+          status: proximo,
+          alterado: true,
+        };
+      })
+    );
   }
 
   return (
     <main className="equipes-page">
-      <div className="equipes-wrap">
-        <header className="equipes-heading">
+      <div className="equipes-container">
+        <header className="equipes-header">
           <div>
+            <span className="equipes-subtitulo">
+              CAPIM GESTÃO · OPERAÇÕES
+            </span>
+
             <h1>Equipes e Atividades Operacionais</h1>
 
             <p>
               Distribuição de ordens de serviço,
-              atribuição de responsabilidades e controle
-              de execução.
+              atribuição de responsáveis e acompanhamento
+              das atividades do shopping.
             </p>
           </div>
 
-          <button
-            type="button"
-            className="eq-primary"
-            onClick={() => setModal(true)}
-          >
-            + Nova Ordem de Serviço
-          </button>
+          <Link href="/painel" className="botao-voltar">
+            ← Voltar ao Painel
+          </Link>
         </header>
 
-        {/* INDICADORES */}
+        <section className="indicadores">
+          <article className="indicador">
+            <span>Total de Ordens</span>
+            <strong>{atividades.length}</strong>
+          </article>
 
-        <section
-          className="eq-kpis"
-          aria-label="Resumo de atividades"
-        >
-          {kpis.map((k) => (
-            <article
-              className="eq-kpi"
-              key={k.nome}
-            >
-              <span>{k.nome}</span>
-              <strong>{k.total}</strong>
-            </article>
-          ))}
+          <article className="indicador">
+            <span>Pendentes</span>
+            <strong className="texto-amarelo">
+              {totalPendentes}
+            </strong>
+          </article>
+
+          <article className="indicador">
+            <span>Em Execução</span>
+            <strong className="texto-azul">
+              {totalExecucao}
+            </strong>
+          </article>
+
+          <article className="indicador">
+            <span>Concluídas</span>
+            <strong className="texto-verde">
+              {totalConcluidas}
+            </strong>
+          </article>
+
+          <article className="indicador">
+            <span>Canceladas</span>
+            <strong className="texto-vermelho">
+              {totalCanceladas}
+            </strong>
+          </article>
         </section>
 
-        {/* QUADRO DE ATIVIDADES */}
+        <div className="conteudo-equipes">
+          <section className="painel-formulario">
+            <h2>Atribuir Nova Atividade</h2>
 
-        <section className="eq-panel">
-          <div className="eq-filters">
-            <h2>Quadro de Ordens de Serviço</h2>
+            <p className="descricao-formulario">
+              Cadastre uma ordem de serviço e defina
+              quem será responsável pela execução.
+            </p>
 
-            <div className="eq-filter-controls">
+            <form onSubmit={criarAtividade}>
+              <label>
+                Descrição da Ordem de Serviço *
+
+                <input
+                  required
+                  type="text"
+                  placeholder="Ex.: Manutenção na escada rolante"
+                  value={titulo}
+                  onChange={(e) =>
+                    setTitulo(e.target.value)
+                  }
+                />
+              </label>
+
+              <label>
+                Equipe Responsável *
+
+                <select
+                  value={equipe}
+                  onChange={(e) =>
+                    setEquipe(e.target.value)
+                  }
+                >
+                  {equipes.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Colaborador Designado *
+
+                <input
+                  required
+                  type="text"
+                  placeholder="Nome do técnico ou operador"
+                  value={responsavel}
+                  onChange={(e) =>
+                    setResponsavel(e.target.value)
+                  }
+                />
+              </label>
+
+              <div className="linha-formulario">
+                <label>
+                  Setor
+
+                  <select
+                    value={setor}
+                    onChange={(e) =>
+                      setSetor(e.target.value)
+                    }
+                  >
+                    {setores.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  Prioridade
+
+                  <select
+                    value={prioridade}
+                    onChange={(e) =>
+                      setPrioridade(
+                        e.target.value as Prioridade
+                      )
+                    }
+                  >
+                    {prioridades.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                Prazo Limite *
+
+                <input
+                  required
+                  type="datetime-local"
+                  value={prazo}
+                  onChange={(e) =>
+                    setPrazo(e.target.value)
+                  }
+                />
+              </label>
+
+              <label>
+                Instruções Operacionais
+
+                <textarea
+                  rows={3}
+                  placeholder="Local exato, equipamentos ou observações..."
+                  value={observacoes}
+                  onChange={(e) =>
+                    setObservacoes(e.target.value)
+                  }
+                />
+              </label>
+
+              <button type="submit" className="botao-criar">
+                + Criar Ordem de Serviço
+              </button>
+            </form>
+          </section>
+
+          <section className="painel-atividades">
+            <div className="atividades-cabecalho">
+              <div>
+                <h2>Ordens de Serviço</h2>
+                <p>
+                  {filtradas.length} atividade(s)
+                  encontrada(s)
+                </p>
+              </div>
+            </div>
+
+            <div className="filtros">
               <select
                 aria-label="Filtrar por equipe"
                 value={filtroEquipe}
@@ -341,9 +588,9 @@ export default function EquipesPage() {
                   Todas as Equipes
                 </option>
 
-                {equipes.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
+                {equipes.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
                   </option>
                 ))}
               </select>
@@ -356,12 +603,12 @@ export default function EquipesPage() {
                 }
               >
                 <option value="Todas">
-                  Todas as Urgências
+                  Todas as Prioridades
                 </option>
 
-                {prioridades.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
+                {prioridades.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
                   </option>
                 ))}
               </select>
@@ -377,621 +624,558 @@ export default function EquipesPage() {
                   Todos os Status
                 </option>
 
-                {statusOpcoes.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
+                {statusOpcoes.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
                   </option>
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="eq-table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>
-                    OS / Descrição da Atividade
-                  </th>
-                  <th>Equipe Responsável</th>
-                  <th>Prioridade</th>
-                  <th>Prazo Limite</th>
-                  <th>Status (Andamento)</th>
-                </tr>
-              </thead>
+            <div className="lista-atividades">
+              {filtradas.length === 0 && (
+                <p className="mensagem-vazia">
+                  Nenhuma ordem de serviço encontrada
+                  para os filtros selecionados.
+                </p>
+              )}
 
-              <tbody>
-                {filtradas.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="eq-empty"
-                    >
-                      Nenhuma ordem de serviço
-                      encontrada para os filtros
-                      selecionados.
-                    </td>
-                  </tr>
-                )}
+              {filtradas.map((atividade) => {
+                const atrasada =
+                  agora !== null &&
+                  atividade.status !== "Concluída" &&
+                  atividade.status !== "Cancelada" &&
+                  new Date(atividade.prazo).getTime() <
+                    agora;
 
-                {filtradas.map((a) => {
-                  // CORREÇÃO: não utiliza new Date()
-                  // durante a renderização.
-                  const atrasada =
-                    agora !== null &&
-                    a.status !== "Cancelada" &&
-                    a.status !== "Concluída" &&
-                    new Date(a.prazo).getTime() <
-                      agora;
+                return (
+                  <article
+                    key={atividade.id}
+                    className={`cartao-atividade ${
+                      atividade.status === "Cancelada"
+                        ? "atividade-cancelada"
+                        : ""
+                    }`}
+                  >
+                    <div className="atividade-topo">
+                      <span className="codigo-os">
+                        {atividade.id}
+                      </span>
 
-                  return (
-                    <tr
-                      key={a.id}
-                      className={
-                        a.status === "Cancelada"
-                          ? "eq-cancelada"
-                          : ""
-                      }
-                    >
-                      <td>
-                        <strong>{a.id}</strong>
-                        {" — "}
-                        {a.titulo}
-
-                        <small>
-                          Solicitado em:{" "}
-                          {formatarPrazo(
-                            a.dataSolicitacao
-                          )}
-                        </small>
-
-                        {a.observacoes && (
-                          <small>
-                            {a.observacoes}
-                          </small>
-                        )}
-                      </td>
-
-                      <td>
-                        <span className="eq-team">
-                          {a.equipe}
-                        </span>
-                      </td>
-
-                      <td>{a.prioridade}</td>
-
-                      <td
-                        className={
-                          atrasada
-                            ? "eq-atrasada"
-                            : ""
-                        }
+                      <span
+                        className={`badge-status ${corStatus(
+                          atividade.status
+                        )}`}
                       >
-                        {formatarPrazo(a.prazo)}
+                        {atividade.status}
+                      </span>
+                    </div>
 
-                        {atrasada && (
-                          <small>
-                            Prazo excedido
-                          </small>
-                        )}
-                      </td>
+                    <h3>{atividade.titulo}</h3>
 
-                      <td>
-                        <select
-                          className={`eq-status eq-${a.status.replaceAll(" ", "")} ${
-                            a.alterado
-                              ? "eq-alterado"
+                    <div className="atividade-informacoes">
+                      <p>
+                        <strong>Equipe:</strong>{" "}
+                        {atividade.equipe}
+                      </p>
+
+                      <p>
+                        <strong>Responsável:</strong>{" "}
+                        {atividade.responsavel || "Não informado"}
+                      </p>
+
+                      <p>
+                        <strong>Setor:</strong>{" "}
+                        {atividade.setor || "Não informado"}
+                      </p>
+
+                      <p>
+                        <strong>Prioridade:</strong>{" "}
+                        <span
+                          className={
+                            atividade.prioridade === "Crítica"
+                              ? "prioridade-critica"
                               : ""
-                          }`}
-                          aria-label={`Alterar status da ordem ${a.id}`}
-                          value={a.status}
+                          }
+                        >
+                          {atividade.prioridade}
+                        </span>
+                      </p>
+
+                      <p>
+                        <strong>Prazo:</strong>{" "}
+                        <span
+                          className={
+                            atrasada ? "prazo-atrasado" : ""
+                          }
+                        >
+                          {formatarData(atividade.prazo)}
+                        </span>
+                      </p>
+
+                      {atrasada && (
+                        <p className="prazo-atrasado">
+                          Prazo excedido
+                        </p>
+                      )}
+
+                      {atividade.observacoes && (
+                        <p>
+                          <strong>Observações:</strong>{" "}
+                          {atividade.observacoes}
+                        </p>
+                      )}
+
+                      <p className="data-solicitacao">
+                        Solicitado em:{" "}
+                        {formatarData(
+                          atividade.dataSolicitacao
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="atividade-acoes">
+                      <label>
+                        Alterar status
+
+                        <select
+                          value={atividade.status}
                           onChange={(e) =>
                             alterarStatus(
-                              a.id,
+                              atividade.id,
                               e.target.value as Status
                             )
                           }
                         >
-                          {statusOpcoes.map((s) => (
+                          {statusOpcoes.map((status) => (
                             <option
-                              key={s}
-                              value={s}
+                              key={status}
+                              value={status}
                             >
-                              {s}
+                              {status}
                             </option>
                           ))}
                         </select>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
+                      </label>
 
-      {/* JANELA DE CADASTRO */}
-
-      {modal && (
-        <div
-          className="eq-overlay"
-          onMouseDown={(e) => {
-            if (
-              e.target === e.currentTarget
-            ) {
-              setModal(false);
-            }
-          }}
-        >
-          <section
-            className="eq-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="eq-modal-title"
-          >
-            <div className="eq-modal-header">
-              <h2 id="eq-modal-title">
-                Criar Nova Ordem de Serviço
-              </h2>
-
-              <button
-                type="button"
-                aria-label="Fechar janela"
-                onClick={() =>
-                  setModal(false)
-                }
-              >
-                ×
-              </button>
-            </div>
-
-            <form
-              onSubmit={criarOS}
-              className="eq-form"
-            >
-              <label>
-                Descrição da Atividade /
-                Ordem de Serviço *
-
-                <input
-                  required
-                  value={titulo}
-                  onChange={(e) =>
-                    setTitulo(e.target.value)
-                  }
-                  placeholder="Ex.: Substituir disjuntor no Piso L2"
-                />
-              </label>
-
-              <label>
-                Equipe Responsável *
-
-                <select
-                  required
-                  value={equipe}
-                  onChange={(e) =>
-                    setEquipe(
-                      e.target.value as Equipe
-                    )
-                  }
-                >
-                  <option
-                    value=""
-                    disabled
-                  >
-                    Selecione a equipe...
-                  </option>
-
-                  {equipes.map((v) => (
-                    <option
-                      key={v}
-                      value={v}
-                    >
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="eq-form-row">
-                <label>
-                  Prioridade *
-
-                  <select
-                    value={prioridade}
-                    onChange={(e) =>
-                      setPrioridade(
-                        e.target.value as Prioridade
-                      )
-                    }
-                  >
-                    {prioridades.map((v) => (
-                      <option
-                        key={v}
-                        value={v}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          avancarStatus(atividade.id)
+                        }
                       >
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label>
-                  Prazo Limite *
-
-                  <input
-                    required
-                    type="datetime-local"
-                    value={prazo}
-                    onChange={(e) =>
-                      setPrazo(e.target.value)
-                    }
-                  />
-                </label>
-              </div>
-
-              <label>
-                Instruções Operacionais
-
-                <textarea
-                  rows={3}
-                  value={observacoes}
-                  onChange={(e) =>
-                    setObservacoes(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Local exato, EPIs necessários ou detalhes técnicos..."
-                />
-              </label>
-
-              <div className="eq-modal-footer">
-                <button
-                  type="button"
-                  className="eq-secondary"
-                  onClick={() =>
-                    setModal(false)
-                  }
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  className="eq-primary"
-                  type="submit"
-                >
-                  Atribuir Ordem de Serviço
-                </button>
-              </div>
-            </form>
+                        Atualizar status ↻
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         </div>
-      )}
-
-      {/* ESTILOS DA PÁGINA */}
+      </div>
 
       <style jsx global>{`
         .equipes-page {
           min-height: 100vh;
-          background: #fdfbf7;
-          color: #2c251e;
-          padding: 40px 24px 80px;
-          font-family: Arial, sans-serif;
+          background: #f8f5ee;
+          color: #292114;
+          padding: 35px 5% 80px;
+          font-family: "Segoe UI", Arial, sans-serif;
         }
 
         .equipes-page * {
           box-sizing: border-box;
         }
 
-        .equipes-wrap {
-          max-width: 1280px;
+        .equipes-container {
+          max-width: 1450px;
           margin: 0 auto;
         }
 
-        .equipes-heading {
+        .equipes-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           gap: 20px;
           flex-wrap: wrap;
-          margin-bottom: 28px;
+          padding-bottom: 25px;
+          border-bottom: 1px solid #e2d9c8;
         }
 
-        .equipes-heading h1 {
-          font-size: clamp(23px, 3vw, 32px);
+        .equipes-subtitulo {
+          color: #b4903d;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 1.5px;
+        }
+
+        .equipes-header h1 {
+          margin: 10px 0;
+          font-family: Georgia, serif;
+          font-size: clamp(25px, 3vw, 34px);
           color: #78581e;
-          margin: 0 0 9px;
         }
 
-        .equipes-heading p {
-          color: #73675c;
+        .equipes-header p {
           margin: 0;
+          font-size: 14px;
+          color: #6b5e4c;
+          line-height: 1.6;
         }
 
-        .eq-primary {
-          border: 0;
-          border-radius: 9px;
-          background: #96712f;
-          color: white;
-          font-weight: 700;
-          padding: 13px 19px;
-          cursor: pointer;
-        }
-
-        .eq-primary:hover {
-          background: #78581e;
-        }
-
-        .eq-kpis {
-          display: grid;
-          grid-template-columns:
-            repeat(5, minmax(0, 1fr));
-          gap: 15px;
-          margin-bottom: 28px;
-        }
-
-        .eq-kpi {
+        .botao-voltar {
+          display: inline-block;
           background: #fff;
-          border: 1px solid #e6dfd1;
-          border-radius: 12px;
-          padding: 21px 17px;
-          box-shadow: 0 3px 12px #37250b0a;
-        }
-
-        .eq-kpi span {
-          display: block;
-          color: #73675c;
+          border: 1px solid #e2d9c8;
+          border-radius: 30px;
+          padding: 12px 18px;
+          color: #78581e;
           font-size: 13px;
-          min-height: 38px;
+          font-weight: 700;
+          text-decoration: none;
         }
 
-        .eq-kpi strong {
+        .botao-voltar:hover {
+          background: #f3ead6;
+        }
+
+        .indicadores {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 15px;
+          margin: 30px 0;
+        }
+
+        .indicador {
+          background: #fff;
+          border: 1px solid #e2d9c8;
+          border-radius: 15px;
+          padding: 22px;
+          box-shadow: 0 4px 15px #382a100a;
+        }
+
+        .indicador span {
           display: block;
+          color: #6b5e4c;
+          font-size: 13px;
+          font-weight: 600;
+          min-height: 35px;
+        }
+
+        .indicador strong {
+          display: block;
+          margin-top: 8px;
           font-size: 32px;
           color: #78581e;
-          margin-top: 9px;
         }
 
-        .eq-panel {
-          background: #fff;
-          border: 1px solid #e6dfd1;
-          border-radius: 14px;
-          overflow: hidden;
-          box-shadow: 0 4px 18px #37250b0a;
-        }
-
-        .eq-filters {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-          flex-wrap: wrap;
-          padding: 22px;
-          border-bottom: 1px solid #e6dfd1;
-        }
-
-        .eq-filters h2 {
-          font-size: 19px;
-          margin: 0;
-        }
-
-        .eq-filter-controls {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .eq-filter-controls select,
-        .eq-form input,
-        .eq-form select,
-        .eq-form textarea {
-          border: 1px solid #d8cdbb;
-          border-radius: 8px;
-          background: #fff;
-          color: #2c251e;
-          padding: 10px 12px;
-          font: inherit;
-        }
-
-        .eq-table-scroll {
-          overflow-x: auto;
-        }
-
-        .eq-panel table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 850px;
-          font-size: 14px;
-        }
-
-        .eq-panel th {
-          background: #f7f3eb;
-          color: #65512f;
-          text-align: left;
-          font-size: 12px;
-          padding: 17px;
-        }
-
-        .eq-panel td {
-          padding: 18px 17px;
-          border-top: 1px solid #eee8df;
-          vertical-align: middle;
-        }
-
-        .eq-panel td:first-child {
-          min-width: 290px;
-        }
-
-        .eq-panel td small {
-          display: block;
-          color: #73675c;
-          font-size: 12px;
-          margin-top: 6px;
-        }
-
-        .eq-team {
-          background: #f7f3eb;
-          border: 1px solid #e6dfd1;
-          border-radius: 7px;
-          padding: 7px 9px;
-          display: inline-block;
-          white-space: nowrap;
-        }
-
-        .eq-panel td.eq-atrasada,
-        .eq-panel td.eq-atrasada small {
-          color: #b91c1c;
-        }
-
-        .eq-cancelada {
-          opacity: 0.68;
-        }
-
-        .eq-status {
-          border: 1px solid transparent;
-          border-radius: 7px;
-          padding: 9px 8px;
-          font-weight: 600;
-          max-width: 155px;
-          cursor: pointer;
-        }
-
-        .eq-Pendente {
-          background: #fef3c7;
+        .indicador .texto-amarelo {
           color: #92400e;
         }
 
-        .eq-EmExecução {
-          background: #e0f2fe;
+        .indicador .texto-azul {
           color: #075985;
         }
 
-        .eq-Concluída {
-          background: #dcfce7;
+        .indicador .texto-verde {
           color: #166534;
         }
 
-        .eq-Cancelada {
-          background: #fee2e2;
+        .indicador .texto-vermelho {
           color: #991b1b;
         }
 
-        .eq-alterado {
-          outline: 2px solid #b4903d;
-        }
-
-        .eq-empty {
-          text-align: center;
-          padding: 35px !important;
-          color: #73675c;
-        }
-
-        .eq-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 1200;
+        .conteudo-equipes {
           display: grid;
-          place-items: center;
-          background: #1f1a148c;
-          padding: 18px;
+          grid-template-columns: minmax(300px, 1fr) minmax(0, 1.8fr);
+          align-items: start;
+          gap: 25px;
         }
 
-        .eq-modal {
-          width: min(100%, 600px);
-          max-height: 90vh;
-          overflow-y: auto;
+        .painel-formulario,
+        .painel-atividades {
           background: #fff;
-          border-radius: 15px;
-          box-shadow: 0 20px 80px #0005;
+          border: 1px solid #e2d9c8;
+          border-radius: 18px;
+          padding: 25px;
+          box-shadow: 0 8px 25px #44310f0f;
+          min-width: 0;
         }
 
-        .eq-modal-header {
-          padding: 21px 25px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-bottom: 1px solid #e6dfd1;
-        }
-
-        .eq-modal-header h2 {
+        .painel-formulario h2,
+        .painel-atividades h2 {
+          margin: 0 0 10px;
+          color: #78581e;
+          font-family: Georgia, serif;
           font-size: 21px;
-          margin: 0;
         }
 
-        .eq-modal-header button {
-          background: transparent;
-          border: 0;
-          font-size: 30px;
-          cursor: pointer;
-          color: #73675c;
+        .descricao-formulario {
+          color: #6b5e4c;
+          font-size: 13px;
+          line-height: 1.5;
+          margin-bottom: 22px;
         }
 
-        .eq-form {
-          padding: 24px;
-          display: grid;
-          gap: 19px;
+        .painel-formulario form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
 
-        .eq-form label {
-          display: grid;
+        .painel-formulario label,
+        .atividade-acoes label {
+          display: flex;
+          flex-direction: column;
           gap: 7px;
           font-size: 13px;
           font-weight: 700;
         }
 
-        .eq-form-row {
+        .painel-formulario input,
+        .painel-formulario select,
+        .painel-formulario textarea,
+        .filtros select,
+        .atividade-acoes select {
+          width: 100%;
+          min-width: 0;
+          border: 1px solid #d8cdbb;
+          border-radius: 9px;
+          background: #fcfbf9;
+          padding: 11px 12px;
+          color: #292114;
+          font: inherit;
+          font-size: 13px;
+        }
+
+        .painel-formulario input:focus,
+        .painel-formulario select:focus,
+        .painel-formulario textarea:focus {
+          outline: 2px solid #b4903d;
+          outline-offset: 1px;
+        }
+
+        .linha-formulario {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
+          gap: 12px;
         }
 
-        .eq-form input,
-        .eq-form select,
-        .eq-form textarea {
-          width: 100%;
-          font-weight: 400;
-        }
-
-        .eq-modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          flex-wrap: wrap;
-          gap: 10px;
+        .botao-criar {
           margin-top: 8px;
-        }
-
-        .eq-secondary {
-          background: #f7f3eb;
-          border: 1px solid #e6dfd1;
-          color: #5a4b34;
-          border-radius: 9px;
-          padding: 12px 18px;
+          padding: 14px;
+          border: none;
+          border-radius: 30px;
+          background: linear-gradient(90deg, #b4903d, #8c6a26);
+          color: #fff;
+          font-weight: 700;
           cursor: pointer;
         }
 
-        @media (max-width: 900px) {
-          .eq-kpis {
-            grid-template-columns:
-              repeat(2, 1fr);
-          }
+        .botao-criar:hover {
+          background: #78581e;
         }
 
-        @media (max-width: 600px) {
-          .equipes-page {
-            padding: 25px 14px;
-          }
+        .atividades-cabecalho {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 20px;
+        }
 
-          .eq-kpis {
-            grid-template-columns: 1fr 1fr;
-          }
+        .atividades-cabecalho p {
+          color: #6b5e4c;
+          font-size: 13px;
+          margin: 0;
+        }
 
-          .eq-form-row {
+        .filtros {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+
+        .lista-atividades {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .cartao-atividade {
+          background: #fcfbf9;
+          border: 1px solid #e2d9c8;
+          border-radius: 14px;
+          padding: 19px;
+          transition: box-shadow 0.2s ease;
+        }
+
+        .cartao-atividade:hover {
+          box-shadow: 0 5px 16px #44310f12;
+        }
+
+        .atividade-cancelada {
+          opacity: 0.7;
+        }
+
+        .atividade-topo {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+
+        .codigo-os {
+          font-size: 12px;
+          font-weight: 800;
+          color: #8c6a26;
+        }
+
+        .badge-status {
+          display: inline-block;
+          border-radius: 30px;
+          padding: 6px 11px;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .badge-status.pendente {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        .badge-status.execucao {
+          background: #e0f2fe;
+          color: #075985;
+        }
+
+        .badge-status.concluida {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .badge-status.cancelada {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+
+        .cartao-atividade h3 {
+          margin: 0 0 15px;
+          color: #292114;
+          font-size: 16px;
+          line-height: 1.5;
+        }
+
+        .atividade-cancelada h3 {
+          text-decoration: line-through;
+        }
+
+        .atividade-informacoes {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px 14px;
+          margin-bottom: 18px;
+        }
+
+        .atividade-informacoes p {
+          margin: 0;
+          color: #6b5e4c;
+          font-size: 13px;
+          line-height: 1.5;
+          overflow-wrap: anywhere;
+        }
+
+        .atividade-informacoes strong {
+          color: #292114;
+        }
+
+        .prioridade-critica,
+        .prazo-atrasado {
+          color: #b91c1c !important;
+          font-weight: 700;
+        }
+
+        .data-solicitacao {
+          font-size: 11px !important;
+        }
+
+        .atividade-acoes {
+          display: flex;
+          justify-content: space-between;
+          align-items: end;
+          gap: 12px;
+          flex-wrap: wrap;
+          border-top: 1px solid #e2d9c8;
+          padding-top: 15px;
+        }
+
+        .atividade-acoes label {
+          flex: 1;
+          min-width: 140px;
+          color: #6b5e4c;
+        }
+
+        .atividade-acoes button {
+          border: 0;
+          border-radius: 30px;
+          padding: 11px 15px;
+          background: #f3ead6;
+          color: #78581e;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .atividade-acoes button:hover {
+          background: #e5d4ad;
+        }
+
+        .mensagem-vazia {
+          text-align: center;
+          padding: 35px;
+          color: #6b5e4c;
+          font-size: 14px;
+        }
+
+        @media (max-width: 1100px) {
+          .conteudo-equipes {
             grid-template-columns: 1fr;
           }
 
-          .eq-filter-controls select {
-            width: 100%;
+          .indicadores {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+
+        @media (max-width: 700px) {
+          .equipes-page {
+            padding: 25px 15px 60px;
+          }
+
+          .indicadores {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .filtros {
+            grid-template-columns: 1fr;
+          }
+
+          .atividade-informacoes {
+            grid-template-columns: 1fr;
+          }
+
+          .linha-formulario {
+            grid-template-columns: 1fr;
+          }
+
+          .painel-formulario,
+          .painel-atividades {
+            padding: 18px;
           }
         }
       `}</style>
