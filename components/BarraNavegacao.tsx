@@ -8,7 +8,9 @@ const links = [
   { nome: "Planta do Shopping", rota: "/planta" },
   { nome: "Infraestrutura", rota: "/infraestrutura" },
   { nome: "Ocorrências", rota: "/ocorrencias" },
+  { nome: "Equipes e Atividades", rota: "/equipes" },
 ];
+
 
 export default function BarraNavegacao() {
   const pathname = usePathname();
@@ -29,16 +31,24 @@ export default function BarraNavegacao() {
               <Link
                 key={link.rota}
                 href={link.rota}
-                className={`capim-navbar-link ${
-                  ativo ? "capim-navbar-link-active" : ""
-                }`}
+                className={`capim-navbar-link ${ativo ? "capim-navbar-link-active" : ""
+                  }`}
                 aria-current={ativo ? "page" : undefined}
               >
                 {link.nome}
               </Link>
             );
           })}
+
+          <Link
+            href="/"
+            className="capim-navbar-logout"
+            title="Encerrar sessão e voltar ao login"
+          >
+            Sair ↪
+          </Link>
         </div>
+
       </nav>
 
       <style jsx global>{`
@@ -89,6 +99,25 @@ export default function BarraNavegacao() {
           background: #b4903d;
           color: #ffffff;
         }
+
+                .capim-navbar-logout {
+          margin-left: 8px;
+          color: #ffffff;
+          background: rgba(41, 33, 20, 0.28);
+          border: 1px solid rgba(243, 234, 214, 0.35);
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 9px 15px;
+          border-radius: 999px;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .capim-navbar-logout:hover {
+          background: rgba(41, 33, 20, 0.48);
+          border-color: #ffffff;
+        }
+
 
         @media (max-width: 700px) {
           .capim-navbar {
