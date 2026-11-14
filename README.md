@@ -12,15 +12,15 @@ Aplicação web desenvolvida pela equipe **Typhlosion** durante o **HackaRun 202
 
 ## 1. Proposta e Estrutura Inicial das Telas
 
-| # | Tela | Finalidade |
-| :--- | :--- | :--- |
-| 1 | **Login** | Acesso e autenticação dos usuários ao sistema. |
-| 2 | **Painel Geral** | Visão resumida da situação operacional e indicadores. |
-| 3 | **Planta do Shopping** | Visualização das áreas e localização espacial de ocorrências. |
-| 4 | **Infraestrutura** | Cadastro e acompanhamento de equipamentos e instalações. |
-| 5 | **Ocorrências** | Registro, classificação e acompanhamento de problemas. |
-| 6 | **Equipes e Atividades** | Distribuição, atribuição e acompanhamento das tarefas. |
-| 7 | **Relatórios** | Indicadores gerenciais e histórico operacional. |
+| #    | Tela                     | Finalidade                                                    |
+| :--- | :----------------------- | :------------------------------------------------------------ |
+| 1    | **Login**                | Acesso e autenticação dos usuários ao sistema.                |
+| 2    | **Painel Geral**         | Visão resumida da situação operacional e indicadores.         |
+| 3    | **Planta do Shopping**   | Visualização das áreas e localização espacial de ocorrências. |
+| 4    | **Infraestrutura**       | Cadastro e acompanhamento de equipamentos e instalações.      |
+| 5    | **Ocorrências**          | Registro, classificação e acompanhamento de problemas.        |
+| 6    | **Equipes e Atividades** | Distribuição, atribuição e acompanhamento das tarefas.        |
+| 7    | **Relatórios**           | Indicadores gerenciais e histórico operacional.               |
 
 ---
 
@@ -76,15 +76,15 @@ Desenvolver uma aplicação web para auxiliar na gestão da infraestrutura, no a
 
 ## 3. Linguagens e Tecnologias Escolhidas
 
-| Tecnologia | Categoria | Utilização no Projeto |
-| :--- | :--- | :--- |
-| **HTML5** | Linguagem de Marcação | Estrutura semântica da aplicação e das páginas. |
-| **CSS3** | Linguagem de Estilo | Estilização visual e responsividade das telas. |
-| **JavaScript** | Linguagem de Programação | Interatividade no cliente e consumo da API. |
-| **Python** | Linguagem de Programação | Processamento lógico e regras de negócio no servidor. |
-| **FastAPI** | Framework Web | Construção da API RESTful de alta performance. |
+| Tecnologia     | Categoria                 | Utilização no Projeto                                  |
+| :------------- | :------------------------ | :----------------------------------------------------- |
+| **HTML5**      | Linguagem de Marcação     | Estrutura semântica da aplicação e das páginas.        |
+| **CSS3**       | Linguagem de Estilo       | Estilização visual e responsividade das telas.         |
+| **JavaScript** | Linguagem de Programação  | Interatividade no cliente e consumo da API.            |
+| **Python**     | Linguagem de Programação  | Processamento lógico e regras de negócio no servidor.  |
+| **FastAPI**    | Framework Web             | Construção da API RESTful de alta performance.         |
 | **PostgreSQL** | Banco de Dados Relacional | Persistência e integridade dos registros operacionais. |
-| **GitHub** | Controle de Versão | Versionamento de código e colaboração em equipe. |
+| **GitHub**     | Controle de Versão        | Versionamento de código e colaboração em equipe.       |
 
 ---
 
@@ -113,13 +113,13 @@ O **Capim Gestão** adota uma **Arquitetura Cliente-Servidor Desacoplada (RESTfu
 
 ## 5. Plataformas e Ferramentas Adotadas
 
-| Plataforma | Função |
-| :--- | :--- |
-| **Visual Studio Code** | Ambiente integrado de desenvolvimento (IDE). |
-| **GitHub** | Armazenamento do código-fonte e controle de versões. |
-| **Vercel** | Publicação e hospedagem contínua da interface web (Frontend). |
-| **Railway** | Hospedagem do servidor (Backend) e do banco de dados PostgreSQL. |
-| **Figma** | Prototipação e planejamento visual das telas. |
+| Plataforma             | Função                                                           |
+| :--------------------- | :--------------------------------------------------------------- |
+| **Visual Studio Code** | Ambiente integrado de desenvolvimento (IDE).                     |
+| **GitHub**             | Armazenamento do código-fonte e controle de versões.             |
+| **Vercel**             | Publicação e hospedagem contínua da interface web (Frontend).    |
+| **Railway**            | Hospedagem do servidor (Backend) e do banco de dados PostgreSQL. |
+| **Figma**              | Prototipação e planejamento visual das telas.                    |
 
 ---
 
@@ -133,15 +133,22 @@ O **HTML5** será utilizado como tecnologia fundamental na construção da inter
 
 ---
 
-## 📁 Estrutura Inicial do Repositório
+## 📁 Estrutura do Repositório
 
-```text
-├── index.html          # Tela inicial / Login e acesso ao Painel Geral
-├── pages/              # Telas operacionais (painel, planta, infraestrutura, ocorrencias, equipes, relatorios)
-├── assets/             # Estilização (CSS), scripts (JS), imagens e planta do shopping
-├── .gitignore          # Arquivos ignorados pelo Git
-└── README.md           # Documentação técnica inicial (Entrega 1)
-```
+├── app/                        # Rotas e telas da aplicação (Next.js App Router)
+│   ├── page.tsx                # Tela 1: Login e autenticação de perfil
+│   ├── painel/page.tsx         # Tela 2: Painel Geral e indicadores (RF08)
+│   ├── planta/page.tsx         # Tela 3: Planta interativa do shopping (RF05)
+│   ├── infraestrutura/page.tsx # Tela 4: Gestão de equipamentos e ativos (RF02)
+│   ├── ocorrencias/page.tsx    # Tela 5: Registro e classificação de chamados (RF03, RF04)
+│   ├── equipes/page.tsx        # Tela 6: Ordens de serviço e equipes (RF06, RF07)
+│   └── relatorios/page.tsx     # Tela 7: Histórico consolidado e exportação (RF09)
+├── components/                 # Componentes reutilizáveis (BarraNavegacao, LoginForm)
+├── public/images/              # Ativos estáticos (logo oficial e planta do shopping)
+├── specs/                      # Especificações funcionais (Spec-Driven Development)
+├── constituição.md             # Regras obrigatórias de arquitetura e padrão da equipe
+└── README.md                   # Documentação oficial do projeto
+
 
 ---
 
