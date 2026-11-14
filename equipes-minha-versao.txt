@@ -1,0 +1,1 @@
+how :2:app/equipes/page.tsx
