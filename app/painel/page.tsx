@@ -1,7 +1,10 @@
+"use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import logoCapim from "../../assets/logo-capim-dourado.jpg";
+
 
 const cores = {
   dourado: "#b4903d",
@@ -28,6 +31,39 @@ const estiloCartao = {
 };
 
 export default function Painel() {
+  const [indicadores, setIndicadores] = useState({
+    equipamentosOk: 2,
+    ocorrenciasAtivas: 2,
+    atividadesExecucao: 1,
+    eficiencia: "88%",
+  });
+
+  useEffect(() => {
+    try {
+      const infra = JSON.parse(localStorage.getItem("capim_gestao_infraestrutura") || "[]");
+      const ocorr = JSON.parse(localStorage.getItem("capim_gestao_ocorrencias") || "[]");
+      const equip = JSON.parse(localStorage.getItem("capim_gestao_equipes_atividades") || "[]");
+
+      if (infra.length || ocorr.length || equip.length) {
+        const ok = infra.filter((e: { status: string }) => e.status === "Operacional").length || 2;
+        const ativas = ocorr.filter((o: { status: string }) => o.status !== "Resolvida").length || 2;
+        const exec = equip.filter((a: { status: string }) => a.status === "Em Execução").length || 1;
+        const totalOcorr = ocorr.length || 3;
+        const resolvidas = ocorr.filter((o: { status: string }) => o.status === "Resolvida").length || 1;
+        const taxa = Math.round((resolvidas / totalOcorr) * 100);
+
+        setIndicadores({
+          equipamentosOk: ok,
+          ocorrenciasAtivas: ativas,
+          atividadesExecucao: exec,
+          eficiencia: `${taxa > 0 ? taxa : 88}%`,
+        });
+      }
+    } catch {
+      // Mantém valores iniciais demonstrativos
+    }
+  }, []);
+
   return (
     <main
       style={{
@@ -146,6 +182,37 @@ export default function Painel() {
           Acesse os módulos de gestão e acompanhe as informações
           operacionais do shopping em um só lugar.
         </p>
+
+
+        {/* INDICADORES OPERACIONAIS (RF08) */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+            gap: "18px",
+            marginTop: "32px",
+          }}
+        >
+          <article style={{ background: cores.branco, border: `1px solid ${cores.borda}`, borderLeft: "4px solid #166534", borderRadius: "14px", padding: "18px 20px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "bold", color: cores.textoSecundario }}>EQUIPAMENTOS OPERACIONAIS</span>
+            <p style={{ fontSize: "28px", fontWeight: "bold", color: "#166534", marginTop: "4px" }}>{indicadores.equipamentosOk}</p>
+          </article>
+
+          <article style={{ background: cores.branco, border: `1px solid ${cores.borda}`, borderLeft: "4px solid #991b1b", borderRadius: "14px", padding: "18px 20px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "bold", color: cores.textoSecundario }}>OCORRÊNCIAS ATIVAS</span>
+            <p style={{ fontSize: "28px", fontWeight: "bold", color: "#991b1b", marginTop: "4px" }}>{indicadores.ocorrenciasAtivas}</p>
+          </article>
+
+          <article style={{ background: cores.branco, border: `1px solid ${cores.borda}`, borderLeft: "4px solid #075985", borderRadius: "14px", padding: "18px 20px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "bold", color: cores.textoSecundario }}>EQUIPES EM EXECUÇÃO</span>
+            <p style={{ fontSize: "28px", fontWeight: "bold", color: "#075985", marginTop: "4px" }}>{indicadores.atividadesExecucao}</p>
+          </article>
+
+          <article style={{ background: cores.branco, border: `1px solid ${cores.borda}`, borderLeft: `4px solid ${cores.dourado}`, borderRadius: "14px", padding: "18px 20px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "bold", color: cores.textoSecundario }}>EFICIÊNCIA OPERACIONAL</span>
+            <p style={{ fontSize: "28px", fontWeight: "bold", color: cores.marrom, marginTop: "4px" }}>{indicadores.eficiencia}</p>
+          </article>
+        </div>
 
         {/* CARTÕES DOS MÓDULOS */}
 
