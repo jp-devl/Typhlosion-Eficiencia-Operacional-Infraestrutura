@@ -369,14 +369,14 @@ function iniciarArraste(
     <main
       style={{
         width: "100%",
+        maxWidth: "none",
         minHeight: "100vh",
         alignSelf: "stretch",
         boxSizing: "border-box",
-        background:
-          "linear-gradient(135deg, #f3ead6 0%, #e9dcc3 100%)",
+        background: "#f8f5ee",
         color: cores.marrom,
         fontFamily: "'Segoe UI', Arial, sans-serif",
-        padding: "28px clamp(16px, 4vw, 48px)",
+        padding: "35px 6%",
       }}
     >
       <style>{`
@@ -417,76 +417,79 @@ function iniciarArraste(
         }
       `}</style>
 
-      <div
+      {/* CABEÇALHO PADRONIZADO COM LOGO OFICIAL */}
+      <header
         style={{
-          width: "100%",
-          maxWidth: 1600,
-          margin: "0 auto",
-          boxSizing: "border-box",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "20px",
+          paddingBottom: "25px",
+          borderBottom: `1px solid ${cores.borda}`,
+          marginBottom: "35px",
         }}
       >
-        {/* CABEÇALHO */}
+        <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap" }}>
+          <img
+            src="/images/logo-capim-dourado.jpg"
+            alt="Logo Capim Dourado Shopping"
+            style={{
+              height: "52px",
+              width: "auto",
+              mixBlendMode: "multiply",
+            }}
+          />
 
-        <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 20,
-            marginBottom: 28,
-          }}
-        >
-          <div>
-            <div
-              style={{
-                color: cores.douradoEscuro,
-                fontWeight: 800,
-                fontSize: 13,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                marginBottom: 8,
-              }}
-            >
-              Capim Gestão
-            </div>
-
+          <div
+            style={{
+              borderLeft: `2px solid ${cores.borda}`,
+              paddingLeft: "18px",
+            }}
+          >
             <h1
               style={{
-                fontSize: "clamp(25px, 3vw, 36px)",
-                fontWeight: 800,
-                color: cores.marrom,
+                fontSize: "28px",
                 margin: 0,
+                color: cores.douradoEscuro,
+                fontFamily: "Georgia, serif",
+                fontWeight: "bold",
               }}
             >
               Planta Interativa do Shopping
             </h1>
-
-            <p
-              style={{
-                color: cores.textoSuave,
-                marginTop: 9,
-                fontSize: 15,
-              }}
-            >
-              Visualize os setores e acompanhe as
-              ocorrências operacionais.
+            <p style={{ margin: "4px 0 0", color: cores.textoSuave, fontSize: "14px" }}>
+              Visualize os setores, pavimentos e acompanhe as ocorrências operacionais
             </p>
           </div>
+        </div>
 
-          <Link
-            href="/painel"
-            style={{
-              ...botao,
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            ← Voltar ao painel
-          </Link>
-        </header>
+        <Link
+          href="/painel"
+          style={{
+            background: cores.branco,
+            color: cores.douradoEscuro,
+            border: `1px solid ${cores.borda}`,
+            padding: "10px 18px",
+            borderRadius: "30px",
+            fontSize: "13px",
+            fontWeight: "bold",
+            textDecoration: "none",
+          }}
+        >
+          ← Voltar ao Painel
+        </Link>
+      </header>
+
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1250,
+          margin: "0 auto",
+          boxSizing: "border-box",
+        }}
+      >
+
 
         {/* RESUMO */}
 
@@ -973,7 +976,7 @@ function iniciarArraste(
                           borderRadius: "50%",
                           background:
                             coresCondicao[
-                              ocorrencia.condicao
+                            ocorrencia.condicao
                             ],
                         }}
                       />

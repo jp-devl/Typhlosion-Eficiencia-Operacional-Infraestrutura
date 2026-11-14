@@ -44,6 +44,7 @@ export default function Painel() {
     >
       {/* CABEÇALHO */}
 
+      {/* CABEÇALHO PADRONIZADO COM LOGO OFICIAL */}
       <header
         style={{
           display: "flex",
@@ -51,28 +52,49 @@ export default function Painel() {
           alignItems: "center",
           flexWrap: "wrap",
           gap: "20px",
-          paddingBottom: "12px",
+          paddingBottom: "25px",
           borderBottom: `1px solid ${cores.borda}`,
         }}
       >
-        
-          <Image
-  src={logoCapim}
-  alt="Logo do Capim Dourado Shopping"
-  width={190}
-  height={105}
-  style={{
-    objectFit: "contain",
-    width: "190px",
-    height: "auto",
-  }}
-/>
+        <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap" }}>
+          <img
+            src="/images/logo-capim-dourado.jpg"
+            alt="Logo Capim Dourado Shopping"
+            style={{
+              height: "52px",
+              width: "auto",
+              mixBlendMode: "multiply",
+            }}
+          />
+
+          <div
+            style={{
+              borderLeft: `2px solid ${cores.borda}`,
+              paddingLeft: "18px",
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "28px",
+                margin: 0,
+                color: cores.marrom,
+                fontFamily: "Georgia, serif",
+                fontWeight: "bold",
+              }}
+            >
+              Capim Gestão
+            </h1>
+            <p style={{ margin: "4px 0 0", color: cores.textoSecundario, fontSize: "14px" }}>
+              Capim Dourado Shopping · Gestão Operacional
+            </p>
+          </div>
+        </div>
 
         <span
           style={{
             background: cores.bege,
             color: cores.marrom,
-            padding: "11px 18px",
+            padding: "10px 18px",
             borderRadius: "30px",
             fontSize: "13px",
             fontWeight: "bold",
@@ -81,6 +103,7 @@ export default function Painel() {
           ● Ambiente demonstrativo
         </span>
       </header>
+
 
       {/* CONTEÚDO PRINCIPAL */}
 
@@ -109,7 +132,7 @@ export default function Painel() {
             fontFamily: "Georgia, serif",
           }}
         >
-          Bem-vindo ao Capim Gestão
+          Bem-vindo
         </h2>
 
         <p
