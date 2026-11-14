@@ -1,5 +1,7 @@
 
 import Link from "next/link";
+import Image from "next/image";
+import logoCapim from "../../assets/logo-capim-dourado.jpg";
 
 const cores = {
   dourado: "#b4903d",
@@ -49,33 +51,22 @@ export default function Painel() {
           alignItems: "center",
           flexWrap: "wrap",
           gap: "20px",
-          paddingBottom: "25px",
+          paddingBottom: "12px",
           borderBottom: `1px solid ${cores.borda}`,
         }}
       >
-        <div>
-          <h1
-            style={{
-              fontSize: "30px",
-              margin: 0,
-              color: cores.marrom,
-              fontFamily: "Georgia, serif",
-              fontStyle: "italic",
-            }}
-          >
-            Capim Gestão
-          </h1>
-
-          <p
-            style={{
-              margin: "7px 0 0",
-              color: cores.textoSecundario,
-              fontSize: "14px",
-            }}
-          >
-            Capim Dourado Shopping · Gestão Operacional
-          </p>
-        </div>
+        
+          <Image
+  src={logoCapim}
+  alt="Logo do Capim Dourado Shopping"
+  width={190}
+  height={105}
+  style={{
+    objectFit: "contain",
+    width: "190px",
+    height: "auto",
+  }}
+/>
 
         <span
           style={{
