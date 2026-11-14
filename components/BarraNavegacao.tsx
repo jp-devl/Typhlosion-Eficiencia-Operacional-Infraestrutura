@@ -8,6 +8,7 @@ const links = [
   { nome: "Planta do Shopping", rota: "/planta" },
   { nome: "Infraestrutura", rota: "/infraestrutura" },
   { nome: "Ocorrências", rota: "/ocorrencias" },
+  { nome: "Equipes e Atividades", rota: "/equipes" },
 ];
 
 export default function BarraNavegacao() {
