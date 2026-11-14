@@ -1,0 +1,64 @@
+
+/* Capim Gestão — Identidade visual dourada */
+
+:root {
+  --capim-dourado: #b4903d;
+  --capim-dourado-escuro: #78581e;
+  --capim-dourado-claro: #f3ead6;
+  --capim-texto: #292114;
+  --capim-texto-suave: #6b5e4c;
+  --capim-borda: #e2d9c8;
+}
+
+/* Fundo geral da tela */
+.planta-dourada {
+  background: linear-gradient(
+    135deg,
+    #f3ead6 0%,
+    #e9dcc3 100%
+  ) !important;
+
+  color: var(--capim-texto) !important;
+}
+
+/* Títulos */
+.planta-dourada h1,
+.planta-dourada h2,
+.planta-dourada h3,
+.planta-dourada h4 {
+  color: var(--capim-dourado-escuro);
+}
+
+/* Textos secundários */
+.planta-dourada p {
+  color: var(--capim-texto-suave);
+}
+
+/* Cartões */
+.planta-dourada section,
+.planta-dourada aside {
+  border-color: var(--capim-borda) !important;
+}
+
+/* Botões */
+.planta-dourada button:not(.marcador-mapa) {
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.planta-dourada button:not(.marcador-mapa):hover {
+  box-shadow: 0 3px 12px rgba(120, 88, 30, 0.18);
+}
+
+/* Campos de filtro */
+.planta-dourada select {
+  border-color: var(--capim-borda) !important;
+  color: var(--capim-texto) !important;
+}
+
+.planta-dourada select:focus {
+  outline: 2px solid var(--capim-dourado);
+  outline-offset: 2px;
+}
