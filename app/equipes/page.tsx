@@ -1,11 +1,26 @@
 
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 
-type Status = "Pendente" | "Em Execução" | "Concluída" | "Cancelada";
+type Status =
+  | "Pendente"
+  | "Em Execução"
+  | "Concluída"
+  | "Cancelada";
+
 type Prioridade = "Baixa" | "Média" | "Alta" | "Crítica";
-type Equipe = "Manutenção Elétrica" | "Refrigeração" | "Limpeza" | "Predial";
+
+type Equipe =
+  | "Manutenção Elétrica"
+  | "Refrigeração"
+  | "Limpeza"
+  | "Predial";
 
 type Atividade = {
   id: string;
@@ -28,7 +43,12 @@ const equipes: Equipe[] = [
   "Predial",
 ];
 
-const prioridades: Prioridade[] = ["Baixa", "Média", "Alta", "Crítica"];
+const prioridades: Prioridade[] = [
+  "Baixa",
+  "Média",
+  "Alta",
+  "Crítica",
+];
 
 const statusOpcoes: Status[] = [
   "Pendente",
@@ -62,7 +82,8 @@ const iniciais: Atividade[] = [
   },
   {
     id: "OS-003",
-    titulo: "Higienização e secagem após reparo hidráulico - Sanitário L1",
+    titulo:
+      "Higienização e secagem após reparo hidráulico - Sanitário L1",
     equipe: "Limpeza",
     prioridade: "Alta",
     prazo: "2026-11-13T21:00",
@@ -73,7 +94,8 @@ const iniciais: Atividade[] = [
   },
   {
     id: "OS-004",
-    titulo: "Reassentamento de porcelanato próximo à Praça de Alimentação",
+    titulo:
+      "Reassentamento de porcelanato próximo à Praça de Alimentação",
     equipe: "Predial",
     prioridade: "Crítica",
     prazo: "2026-11-14T08:00",
@@ -105,20 +127,33 @@ function numeroOS(id: string) {
 }
 
 export default function EquipesPage() {
-  const [atividades, setAtividades] = useState<Atividade[]>(iniciais);
+  // CORREÇÃO: horário obtido após a montagem da página.
+  const [agora, setAgora] = useState<number | null>(null);
+
+  const [atividades, setAtividades] =
+    useState<Atividade[]>(iniciais);
+
   const [carregado, setCarregado] = useState(false);
   const [modal, setModal] = useState(false);
 
   const [filtroEquipe, setFiltroEquipe] = useState("Todas");
-  const [filtroPrioridade, setFiltroPrioridade] = useState("Todas");
+  const [filtroPrioridade, setFiltroPrioridade] =
+    useState("Todas");
   const [filtroStatus, setFiltroStatus] = useState("Todos");
 
   const [titulo, setTitulo] = useState("");
   const [equipe, setEquipe] = useState<Equipe | "">("");
-  const [prioridade, setPrioridade] = useState<Prioridade>("Média");
+  const [prioridade, setPrioridade] =
+    useState<Prioridade>("Média");
   const [prazo, setPrazo] = useState("");
   const [observacoes, setObservacoes] = useState("");
 
+  // CORREÇÃO DO ERRO DO NEXT.JS
+  useEffect(() => {
+    setAgora(Date.now());
+  }, []);
+
+  // Recupera as atividades salvas no navegador.
   useEffect(() => {
     try {
       const salvo = localStorage.getItem(STORAGE_KEY);
@@ -137,26 +172,41 @@ export default function EquipesPage() {
     setCarregado(true);
   }, []);
 
+  // Salva as alterações no navegador.
   useEffect(() => {
     if (carregado) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(atividades));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(atividades)
+      );
     }
   }, [atividades, carregado]);
 
+  // Aplica os filtros.
   const filtradas = useMemo(
     () =>
       atividades
         .filter(
           (a) =>
-            (filtroEquipe === "Todas" || a.equipe === filtroEquipe) &&
+            (filtroEquipe === "Todas" ||
+              a.equipe === filtroEquipe) &&
             (filtroPrioridade === "Todas" ||
               a.prioridade === filtroPrioridade) &&
-            (filtroStatus === "Todos" || a.status === filtroStatus)
+            (filtroStatus === "Todos" ||
+              a.status === filtroStatus)
         )
-        .sort((a, b) => numeroOS(a.id) - numeroOS(b.id)),
-    [atividades, filtroEquipe, filtroPrioridade, filtroStatus]
+        .sort(
+          (a, b) => numeroOS(a.id) - numeroOS(b.id)
+        ),
+    [
+      atividades,
+      filtroEquipe,
+      filtroPrioridade,
+      filtroStatus,
+    ]
   );
 
+  // Indicadores da página.
   const kpis = [
     {
       nome: "Total de Ordens de Serviço",
@@ -171,14 +221,18 @@ export default function EquipesPage() {
             : s === "Cancelada"
               ? "Canceladas"
               : "Pendentes",
-      total: atividades.filter((a) => a.status === s).length,
+      total: atividades.filter(
+        (a) => a.status === s
+      ).length,
     })),
   ];
 
   function alterarStatus(id: string, status: Status) {
     setAtividades((lista) =>
       lista.map((a) =>
-        a.id === id ? { ...a, status, alterado: true } : a
+        a.id === id
+          ? { ...a, status, alterado: true }
+          : a
       )
     );
   }
@@ -186,14 +240,21 @@ export default function EquipesPage() {
   function criarOS(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!titulo.trim() || !equipe || !prazo) return;
+    if (!titulo.trim() || !equipe || !prazo) {
+      return;
+    }
 
     const proximo =
-      Math.max(0, ...atividades.map((a) => numeroOS(a.id))) + 1;
+      Math.max(
+        0,
+        ...atividades.map((a) => numeroOS(a.id))
+      ) + 1;
 
-    const agora = new Date();
+    const agoraLocal = new Date();
+
     const dataLocal = new Date(
-      agora.getTime() - agora.getTimezoneOffset() * 60000
+      agoraLocal.getTime() -
+        agoraLocal.getTimezoneOffset() * 60000
     )
       .toISOString()
       .slice(0, 16);
@@ -213,6 +274,7 @@ export default function EquipesPage() {
       },
     ]);
 
+    setAgora(Date.now());
     setModal(false);
     setTitulo("");
     setEquipe("");
@@ -227,13 +289,16 @@ export default function EquipesPage() {
         <header className="equipes-heading">
           <div>
             <h1>Equipes e Atividades Operacionais</h1>
+
             <p>
-              Distribuição de ordens de serviço, atribuição de
-              responsabilidades e controle de execução.
+              Distribuição de ordens de serviço,
+              atribuição de responsabilidades e controle
+              de execução.
             </p>
           </div>
 
           <button
+            type="button"
             className="eq-primary"
             onClick={() => setModal(true)}
           >
@@ -241,14 +306,24 @@ export default function EquipesPage() {
           </button>
         </header>
 
-        <section className="eq-kpis" aria-label="Resumo de atividades">
+        {/* INDICADORES */}
+
+        <section
+          className="eq-kpis"
+          aria-label="Resumo de atividades"
+        >
           {kpis.map((k) => (
-            <article className="eq-kpi" key={k.nome}>
+            <article
+              className="eq-kpi"
+              key={k.nome}
+            >
               <span>{k.nome}</span>
               <strong>{k.total}</strong>
             </article>
           ))}
         </section>
+
+        {/* QUADRO DE ATIVIDADES */}
 
         <section className="eq-panel">
           <div className="eq-filters">
@@ -258,33 +333,54 @@ export default function EquipesPage() {
               <select
                 aria-label="Filtrar por equipe"
                 value={filtroEquipe}
-                onChange={(e) => setFiltroEquipe(e.target.value)}
+                onChange={(e) =>
+                  setFiltroEquipe(e.target.value)
+                }
               >
-                <option value="Todas">Todas as Equipes</option>
+                <option value="Todas">
+                  Todas as Equipes
+                </option>
+
                 {equipes.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
                 ))}
               </select>
 
               <select
                 aria-label="Filtrar por prioridade"
                 value={filtroPrioridade}
-                onChange={(e) => setFiltroPrioridade(e.target.value)}
+                onChange={(e) =>
+                  setFiltroPrioridade(e.target.value)
+                }
               >
-                <option value="Todas">Todas as Urgências</option>
+                <option value="Todas">
+                  Todas as Urgências
+                </option>
+
                 {prioridades.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
                 ))}
               </select>
 
               <select
                 aria-label="Filtrar por status"
                 value={filtroStatus}
-                onChange={(e) => setFiltroStatus(e.target.value)}
+                onChange={(e) =>
+                  setFiltroStatus(e.target.value)
+                }
               >
-                <option value="Todos">Todos os Status</option>
+                <option value="Todos">
+                  Todos os Status
+                </option>
+
                 {statusOpcoes.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
                 ))}
               </select>
             </div>
@@ -294,7 +390,9 @@ export default function EquipesPage() {
             <table>
               <thead>
                 <tr>
-                  <th>OS / Descrição da Atividade</th>
+                  <th>
+                    OS / Descrição da Atividade
+                  </th>
                   <th>Equipe Responsável</th>
                   <th>Prioridade</th>
                   <th>Prazo Limite</th>
@@ -305,18 +403,26 @@ export default function EquipesPage() {
               <tbody>
                 {filtradas.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="eq-empty">
-                      Nenhuma ordem de serviço encontrada para os
-                      filtros selecionados.
+                    <td
+                      colSpan={5}
+                      className="eq-empty"
+                    >
+                      Nenhuma ordem de serviço
+                      encontrada para os filtros
+                      selecionados.
                     </td>
                   </tr>
                 )}
 
                 {filtradas.map((a) => {
+                  // CORREÇÃO: não utiliza new Date()
+                  // durante a renderização.
                   const atrasada =
+                    agora !== null &&
                     a.status !== "Cancelada" &&
                     a.status !== "Concluída" &&
-                    new Date(a.prazo) < new Date();
+                    new Date(a.prazo).getTime() <
+                      agora;
 
                   return (
                     <tr
@@ -328,32 +434,55 @@ export default function EquipesPage() {
                       }
                     >
                       <td>
-                        <strong>{a.id}</strong> — {a.titulo}
+                        <strong>{a.id}</strong>
+                        {" — "}
+                        {a.titulo}
+
                         <small>
                           Solicitado em:{" "}
-                          {formatarPrazo(a.dataSolicitacao)}
+                          {formatarPrazo(
+                            a.dataSolicitacao
+                          )}
                         </small>
+
                         {a.observacoes && (
-                          <small>{a.observacoes}</small>
+                          <small>
+                            {a.observacoes}
+                          </small>
                         )}
                       </td>
 
                       <td>
-                        <span className="eq-team">{a.equipe}</span>
+                        <span className="eq-team">
+                          {a.equipe}
+                        </span>
                       </td>
 
                       <td>{a.prioridade}</td>
 
                       <td
-                        className={atrasada ? "eq-atrasada" : ""}
+                        className={
+                          atrasada
+                            ? "eq-atrasada"
+                            : ""
+                        }
                       >
                         {formatarPrazo(a.prazo)}
-                        {atrasada && <small>Prazo excedido</small>}
+
+                        {atrasada && (
+                          <small>
+                            Prazo excedido
+                          </small>
+                        )}
                       </td>
 
                       <td>
                         <select
-                          className={`eq-status eq-${a.status.replaceAll(" ", "")} ${a.alterado ? "eq-alterado" : ""}`}
+                          className={`eq-status eq-${a.status.replaceAll(" ", "")} ${
+                            a.alterado
+                              ? "eq-alterado"
+                              : ""
+                          }`}
                           aria-label={`Alterar status da ordem ${a.id}`}
                           value={a.status}
                           onChange={(e) =>
@@ -364,7 +493,12 @@ export default function EquipesPage() {
                           }
                         >
                           {statusOpcoes.map((s) => (
-                            <option key={s}>{s}</option>
+                            <option
+                              key={s}
+                              value={s}
+                            >
+                              {s}
+                            </option>
                           ))}
                         </select>
                       </td>
@@ -377,11 +511,15 @@ export default function EquipesPage() {
         </section>
       </div>
 
+      {/* JANELA DE CADASTRO */}
+
       {modal && (
         <div
           className="eq-overlay"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
+            if (
+              e.target === e.currentTarget
+            ) {
               setModal(false);
             }
           }}
@@ -400,38 +538,58 @@ export default function EquipesPage() {
               <button
                 type="button"
                 aria-label="Fechar janela"
-                onClick={() => setModal(false)}
+                onClick={() =>
+                  setModal(false)
+                }
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={criarOS} className="eq-form">
+            <form
+              onSubmit={criarOS}
+              className="eq-form"
+            >
               <label>
-                Descrição da Atividade / Ordem de Serviço *
+                Descrição da Atividade /
+                Ordem de Serviço *
+
                 <input
                   required
                   value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  placeholder="Ex.: Substituir disjuntor e testar circuito no Piso L2"
+                  onChange={(e) =>
+                    setTitulo(e.target.value)
+                  }
+                  placeholder="Ex.: Substituir disjuntor no Piso L2"
                 />
               </label>
 
               <label>
                 Equipe Responsável *
+
                 <select
                   required
                   value={equipe}
                   onChange={(e) =>
-                    setEquipe(e.target.value as Equipe)
+                    setEquipe(
+                      e.target.value as Equipe
+                    )
                   }
                 >
-                  <option value="" disabled>
+                  <option
+                    value=""
+                    disabled
+                  >
                     Selecione a equipe...
                   </option>
 
                   {equipes.map((v) => (
-                    <option key={v}>{v}</option>
+                    <option
+                      key={v}
+                      value={v}
+                    >
+                      {v}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -439,6 +597,7 @@ export default function EquipesPage() {
               <div className="eq-form-row">
                 <label>
                   Prioridade *
+
                   <select
                     value={prioridade}
                     onChange={(e) =>
@@ -448,29 +607,40 @@ export default function EquipesPage() {
                     }
                   >
                     {prioridades.map((v) => (
-                      <option key={v}>{v}</option>
+                      <option
+                        key={v}
+                        value={v}
+                      >
+                        {v}
+                      </option>
                     ))}
                   </select>
                 </label>
 
                 <label>
                   Prazo Limite *
+
                   <input
                     required
                     type="datetime-local"
                     value={prazo}
-                    onChange={(e) => setPrazo(e.target.value)}
+                    onChange={(e) =>
+                      setPrazo(e.target.value)
+                    }
                   />
                 </label>
               </div>
 
               <label>
                 Instruções Operacionais
+
                 <textarea
                   rows={3}
                   value={observacoes}
                   onChange={(e) =>
-                    setObservacoes(e.target.value)
+                    setObservacoes(
+                      e.target.value
+                    )
                   }
                   placeholder="Local exato, EPIs necessários ou detalhes técnicos..."
                 />
@@ -480,12 +650,17 @@ export default function EquipesPage() {
                 <button
                   type="button"
                   className="eq-secondary"
-                  onClick={() => setModal(false)}
+                  onClick={() =>
+                    setModal(false)
+                  }
                 >
                   Cancelar
                 </button>
 
-                <button className="eq-primary" type="submit">
+                <button
+                  className="eq-primary"
+                  type="submit"
+                >
                   Atribuir Ordem de Serviço
                 </button>
               </div>
@@ -493,6 +668,8 @@ export default function EquipesPage() {
           </section>
         </div>
       )}
+
+      {/* ESTILOS DA PÁGINA */}
 
       <style jsx global>{`
         .equipes-page {
@@ -548,7 +725,8 @@ export default function EquipesPage() {
 
         .eq-kpis {
           display: grid;
-          grid-template-columns: repeat(5, minmax(0, 1fr));
+          grid-template-columns:
+            repeat(5, minmax(0, 1fr));
           gap: 15px;
           margin-bottom: 28px;
         }
@@ -794,7 +972,8 @@ export default function EquipesPage() {
 
         @media (max-width: 900px) {
           .eq-kpis {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns:
+              repeat(2, 1fr);
           }
         }
 
