@@ -306,31 +306,35 @@ export default function PlantaPage() {
     );
   }
 
-  function iniciarArraste(
-    event: PointerEvent<HTMLDivElement>
-  ) {
-    if (event.button !== 0) return;
+function iniciarArraste(
+  event: PointerEvent<HTMLDivElement>
+) {
+  if (event.button !== 0) return;
 
-    setArrastando(true);
+  event.preventDefault();
 
-    inicioArraste.current = {
-      x: event.clientX - posicao.x,
-      y: event.clientY - posicao.y,
-    };
+  inicioArraste.current = {
+    x: event.clientX - posicao.x,
+    y: event.clientY - posicao.y,
+  };
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
+  event.currentTarget.setPointerCapture(event.pointerId);
+
+  setArrastando(true);
+}
 
   function moverMapa(
-    event: PointerEvent<HTMLDivElement>
-  ) {
-    if (!arrastando) return;
-
-    setPosicao({
-      x: event.clientX - inicioArraste.current.x,
-      y: event.clientY - inicioArraste.current.y,
-    });
+  event: PointerEvent<HTMLDivElement>
+) {
+  if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+    return;
   }
+
+  setPosicao({
+    x: event.clientX - inicioArraste.current.x,
+    y: event.clientY - inicioArraste.current.y,
+  });
+}
 
   function pararArraste() {
     setArrastando(false);
