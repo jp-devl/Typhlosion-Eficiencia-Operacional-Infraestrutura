@@ -390,6 +390,38 @@ export default function Painel() {
             </p>
           </Link>
 
+          {/* RELATÓRIOS E INDICADORES */}
+          <Link href="/relatorios" style={estiloCartao}>
+            <div
+              style={{
+                width: "55px",
+                height: "55px",
+                borderRadius: "14px",
+                background: cores.bege,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "27px",
+                color: cores.marrom,
+              }}
+            >
+              ▤
+            </div>
+
+            <h3 style={{ fontSize: "22px", margin: "24px 0 10px", color: cores.marrom }}>
+              Relatórios e Indicadores
+            </h3>
+
+            <p style={{ color: cores.textoSecundario, lineHeight: 1.7, fontSize: "14px", minHeight: "48px" }}>
+              Consulte o histórico consolidado de operações, métricas de desempenho e exportação gerencial.
+            </p>
+
+            <p style={{ color: cores.douradoEscuro, fontWeight: "bold", marginTop: "25px" }}>
+              Acessar módulo →
+            </p>
+          </Link>
+
+
 
         </div>
       </section>

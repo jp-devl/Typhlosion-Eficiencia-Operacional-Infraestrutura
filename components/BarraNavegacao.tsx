@@ -10,6 +10,7 @@ const links = [
   { nome: "Infraestrutura", rota: "/infraestrutura" },
   { nome: "Ocorrências", rota: "/ocorrencias" },
   { nome: "Equipes", rota: "/equipes" },
+  { nome: "Relatórios", rota: "/relatorios" },
 ];
 
 const perfisDisponiveis = [
