@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -8,6 +7,7 @@ const links = [
   { nome: "Início", rota: "/painel" },
   { nome: "Planta do Shopping", rota: "/planta" },
   { nome: "Infraestrutura", rota: "/infraestrutura" },
+  { nome: "Ocorrências", rota: "/ocorrencias" },
 ];
 
 export default function BarraNavegacao() {
@@ -21,14 +21,6 @@ export default function BarraNavegacao() {
   return (
     <>
       <nav className="capim-navbar" aria-label="Navegação principal">
-        <Link href="/painel" className="capim-navbar-brand">
-
-          <span className="capim-navbar-brand-text">
-            <strong>Capim Gestão</strong>
-            <small>Capim Dourado Shopping</small>
-          </span>
-        </Link>
-
         <div className="capim-navbar-links">
           {links.map((link) => {
             const ativo = pathname === link.rota;
@@ -60,62 +52,21 @@ export default function BarraNavegacao() {
           top: 0;
           z-index: 999;
           width: 100%;
-          min-height: 82px;
-          padding: 12px 5%;
+          min-height: 68px;
+          padding: 10px 6%;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: flex-end;
           gap: 24px;
           background: #96712f;
           border-bottom: 3px solid #b4903d;
           box-shadow: 0 5px 20px rgba(41, 33, 20, 0.18);
         }
 
-        .capim-navbar-brand {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          text-decoration: none;
-          flex-shrink: 0;
-        }
-
-        .capim-navbar-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 125px;
-  height: 65px;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  overflow: visible;
-  flex-shrink: 0;
-  filter: none;
-}
-
-        .capim-navbar-brand-text {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .capim-navbar-brand-text strong {
-          color: #ffffff;
-          font-family: Georgia, serif;
-          font-size: 22px;
-          font-style: italic;
-        }
-
-        .capim-navbar-brand-text small {
-          color: #f3ead6;
-          font-size: 11px;
-          letter-spacing: 0.4px;
-        }
-
         .capim-navbar-links {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           flex-wrap: wrap;
         }
 
@@ -124,7 +75,7 @@ export default function BarraNavegacao() {
           text-decoration: none;
           font-size: 14px;
           font-weight: 600;
-          padding: 12px 16px;
+          padding: 10px 16px;
           border-radius: 9px;
           transition: background 0.2s, color 0.2s;
         }
@@ -141,10 +92,8 @@ export default function BarraNavegacao() {
 
         @media (max-width: 700px) {
           .capim-navbar {
-            flex-direction: column;
-            align-items: flex-start;
+            justify-content: flex-start;
             padding: 12px 18px;
-            gap: 12px;
           }
 
           .capim-navbar-links {
@@ -154,11 +103,7 @@ export default function BarraNavegacao() {
 
           .capim-navbar-link {
             font-size: 12px;
-            padding: 10px 12px;
-          }
-
-          .capim-navbar-brand-text strong {
-            font-size: 19px;
+            padding: 9px 12px;
           }
         }
       `}</style>
